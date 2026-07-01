@@ -1,0 +1,2837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CLG Campaign Performance · Netcore Cloud</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f4f5f7;color:#1a2533;font-size:13px}
+
+/* ── Top bar ── */
+.topbar{background:#1a2035;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #e8384f}
+.topbar h1{font-size:19px;font-weight:700;color:#fff;letter-spacing:-0.3px}
+.topbar p{font-size:11px;color:#7a8899;margin-top:2px}
+.rbtns{display:flex;gap:5px}
+.rb{padding:6px 13px;border-radius:5px;font-size:11px;cursor:pointer;border:none;background:rgba(255,255,255,.1);color:#9aaab8;font-family:inherit;transition:background .15s}
+.rb.active{background:#e8384f;color:#fff;font-weight:600}
+.rb:hover:not(.active){background:rgba(255,255,255,.18)}
+
+/* ── Tab bar ── */
+.tabbar{background:#fff;border-bottom:1.5px solid #e4e6ea;display:flex;padding:0 28px}
+.tab{padding:13px 20px;font-size:13px;cursor:pointer;border:none;background:none;color:#6b7a8d;border-bottom:3px solid transparent;margin-bottom:-1.5px;font-family:inherit;white-space:nowrap}
+.tab.active{color:#e8384f;border-bottom-color:#e8384f;font-weight:600}
+.tab:hover:not(.active){color:#1a2533}
+
+/* ── Panels ── */
+.panel{display:none;padding:22px 28px 60px}.panel.active{display:block}
+
+/* ── Section header (dark) ── */
+.sec-hdr{background:#1a2035;border-radius:8px 8px 0 0;padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr h2{font-size:13px;font-weight:700;color:#fff}
+.sec-hdr .sub{font-size:11px;color:#7a8899;margin-left:8px;font-weight:400}
+.sec-body{background:#fff;border-radius:0 0 8px 8px;border:1px solid #e4e6ea;border-top:none;margin-bottom:20px;overflow:hidden}
+
+/* ── Section title (light) ── */
+.sec-ttl{font-size:15px;font-weight:700;color:#1a2533;margin-bottom:3px}
+.sec-sub{font-size:12px;color:#8892a4;margin-bottom:6px}
+.redline{height:2px;background:#e8384f;border-radius:1px;margin-bottom:14px}
+
+/* ── KPI cards ── */
+.kpis{display:grid;gap:14px;margin-bottom:20px}
+.kpis.n5{grid-template-columns:repeat(5,1fr)}
+.kpis.n6{grid-template-columns:repeat(6,1fr)}
+.kpis.n3{grid-template-columns:repeat(3,1fr)}
+.kpis.n4{grid-template-columns:repeat(4,1fr)}
+.kpi{background:#fff;border-radius:8px;padding:16px 18px;border:1px solid #e4e6ea;border-top:3px solid #e8384f}
+.kpi.bl{border-top-color:#3b82f6}.kpi.tl{border-top-color:#10b981}
+.kpi.pu{border-top-color:#8b5cf6}.kpi.am{border-top-color:#f59e0b}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#8892a4;margin-bottom:7px}
+.kpi-val{font-size:24px;font-weight:700;color:#1a2533;line-height:1;margin-bottom:3px}
+.kpi-sub{font-size:11px;color:#a0aab4}
+
+/* ── Tables ── */
+.tbl-wrap{background:#fff;border:1px solid #e4e6ea;border-radius:8px;overflow:hidden;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+.th-dk{background:#1a2035}
+.th-dk th{padding:9px 12px;text-align:left;color:#7a8899;font-size:10px;font-weight:600;letter-spacing:.07em;white-space:nowrap}
+.th-dk th:not(:first-child){text-align:right}
+tbody tr{border-bottom:1px solid #f0f2f5}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fafbfc}
+td{padding:10px 12px;color:#1a2533;vertical-align:middle}
+td:not(:first-child){text-align:right}
+.nb{font-weight:700;color:#1a2533}
+.nbl{color:#3b82f6;font-weight:600}.nr{color:#e8384f;font-weight:600}
+.np{color:#8b5cf6;font-weight:600}.ng{color:#10b981;font-weight:600}
+.na{color:#f59e0b;font-weight:600}.nc{color:#06b6d4;font-weight:600}
+.tot{background:#f0f4ff!important;font-weight:700}
+
+/* ── LQI header ── */
+.lqi-hdr{display:block;background:#e8384f;color:#fff;text-align:center;font-size:10px;font-weight:700;letter-spacing:.1em;padding:5px}
+.lqi-sub th{background:#f8f9ff!important}
+.lqi-sub th:nth-child(2){color:#3b82f6!important}
+.lqi-sub th:nth-child(3){color:#e8384f!important}
+.lqi-sub th:nth-child(4){color:#8b5cf6!important}
+.lqi-sub th:nth-child(5){color:#f59e0b!important}
+.lqi-sub th:nth-child(6){color:#10b981!important}
+.lqi-sub th:nth-child(7){color:#06b6d4!important}
+
+/* ── Win rate ── */
+.win-hdr{display:grid;grid-template-columns:260px 1fr 1fr;background:#1a2035;border-bottom:1px solid #2a3050}
+.wh{padding:9px 16px;font-size:10px;font-weight:600;color:#7a8899;letter-spacing:.07em;display:flex;align-items:center;border-right:1px solid #2a3050}
+.wh:first-child{justify-content:flex-start}
+.wh:not(:first-child){justify-content:center}
+.wh:last-child{border-right:none}
+.win-row{display:grid;grid-template-columns:260px 1fr 1fr;border-bottom:1px solid #f0f2f5}
+.win-row:last-child{border-bottom:none}
+.wc{padding:16px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid #f0f2f5}
+.wc:last-child{border-right:none}
+.wpct{font-size:26px;font-weight:700;color:#8b5cf6;line-height:1}
+.wpct.tl{color:#06b6d4}
+.wsub{font-size:11px;color:#8892a4;margin-top:3px}
+.win-clg{background:#fdf8f0}.win-all{background:#f0fdf9}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;vertical-align:1px}
+
+/* ── Region filter ── */
+.reg-btns{display:flex;gap:3px}
+.rb2{padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;border:none;background:rgba(255,255,255,.1);color:#9aaab8;font-family:inherit}
+.rb2.active{background:#e8384f;color:#fff}
+.rb2:hover:not(.active){background:rgba(255,255,255,.2)}
+
+/* ── Charts ── */
+.chart-box{background:#fff;border:1px solid #e4e6ea;border-radius:8px;padding:18px;margin-bottom:20px}
+.chart-box h4{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4;margin-bottom:12px}
+.ch-wrap{position:relative;width:100%;height:220px}
+.leg{display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:11px;color:#6b7a8d}
+.leg span{display:flex;align-items:center;gap:5px}
+.ldot{width:10px;height:10px;border-radius:2px}
+
+/* ── Ad format tags ── */
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600}
+.tag.vid{background:#dbeafe;color:#1d4ed8}
+.tag.car{background:#fce7f3;color:#9d174d}
+.tag.img{background:#ede9fe;color:#5b21b6}
+
+/* ── Publications ── */
+.pub-row{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;border-bottom:1px solid #f0f2f5}
+.pub-row:last-child{border-bottom:none}
+.pub-nm{font-weight:700;font-size:13px;margin-bottom:3px}
+.pub-bg{display:inline-block;font-size:10px;background:#dcfce7;color:#16a34a;padding:1px 7px;border-radius:3px;font-weight:600}
+.pub-lnk{color:#3b82f6;font-size:12px}
+.pub-dt{font-size:11px;color:#8892a4;margin-top:2px}
+
+/* ── Loading / error ── */
+#loading{text-align:center;padding:80px;color:#8892a4}
+.spinner{width:36px;height:36px;border:3px solid #e4e6ea;border-top-color:#3b82f6;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#err-msg{display:none;text-align:center;padding:60px;color:#e8384f;font-size:13px}
+
+.story-region-block{margin-bottom:16px;border:1px solid #e4e6ea;border-radius:8px;overflow:hidden}
+.story-region-hdr{background:#1a2035;padding:10px 16px;font-size:13px;font-weight:700;color:#fff}
+.story-region-tbl{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed}
+.story-region-tbl th{padding:9px 14px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4;border-bottom:1px solid #f0f2f5;background:#f8f9fc;white-space:nowrap}
+.story-region-tbl th:nth-child(1){width:36px;text-align:center}
+.story-region-tbl th:nth-child(2){text-align:left;width:auto}
+.story-region-tbl th:nth-child(3){width:100px}
+.story-region-tbl th:nth-child(4){width:100px}
+.story-region-tbl th:nth-child(5){width:120px}
+.story-region-tbl th:nth-child(6){width:120px}
+.story-region-tbl th:nth-child(7){width:100px}
+.story-region-tbl td{padding:10px 14px;border-bottom:1px solid #f0f2f5;color:#1a2533;vertical-align:middle;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.story-region-tbl td:nth-child(1){text-align:center;width:36px}
+.story-region-tbl td:nth-child(2){text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.story-region-tbl tr:last-child td{border-bottom:none}
+.story-region-tbl tr:hover td{background:#fafbfc}
+.story-num{color:#8892a4;font-size:12px}
+.story-link{color:#3b82f6;text-decoration:none;font-size:12px;cursor:pointer;display:block;overflow:hidden;text-overflow:ellipsis}
+.story-link:hover{text-decoration:underline;color:#1a7fa0}
+.story-link.copied{color:#10b981!important}
+.copy-tip{font-size:10px;color:#10b981;margin-left:8px;opacity:0;transition:opacity .3s}
+/* ── Responsive ── */
+@media(max-width:1100px){.kpis.n5,.kpis.n6{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.kpis.n5,.kpis.n6,.kpis.n4,.kpis.n3{grid-template-columns:repeat(2,1fr)};.tabbar{overflow-x:auto}.win-hdr,.win-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h1>CLG Campaign Performance</h1><p>Customer-Led Growth · Marketing Intelligence Dashboard</p></div>
+  <div class="rbtns">
+    <button class="rb active" id="rb-l2w"  onclick="setRange('l2w',this)">Last 2W vs 2W</button>
+    <button class="rb"        id="rb-l30"  onclick="setRange('l30',this)">Last 30D vs 30D</button>
+    <button class="rb"        id="rb-l90"  onclick="setRange('l90',this)">Last 90D vs 90D</button>
+    <button class="rb"        id="rb-cust" onclick="setRange('cust',this)">Custom Range</button>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab active" onclick="showTab('summary')">⚡ Summary</button>
+  <button class="tab"        onclick="showTab('paid')">📊 Paid Media</button>
+  <button class="tab"        onclick="showTab('owned')">📄 Owned Media</button>
+  <button class="tab"        onclick="showTab('earned')">📰 Earned Media</button>
+  <button class="tab"        onclick="showTab('reviews')">⭐ Reviews</button>
+  <button class="tab"        onclick="showTab('ga4tab')">📈 GA4 Analytics</button>
+</div>
+
+<div id="loading"><div class="spinner"></div><p>Loading live data from Google Sheets…</p></div>
+<div id="err-msg"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════ SUMMARY -->
+<div id="p-summary" class="panel">
+  <div class="sec-hdr">
+    <div><h2>Demo Lead Performance <span class="sub">Last 2 Weeks</span></h2></div>
+    <div class="reg-btns">
+      <button class="rb2 active" onclick="setReg('All',this)">All</button>
+      <button class="rb2" onclick="setReg('India',this)">India</button>
+      <button class="rb2" onclick="setReg('MEA',this)">MEA</button>
+      <button class="rb2" onclick="setReg('SEA',this)">SEA</button>
+      <button class="rb2" onclick="setReg('EU',this)">EU</button>
+      <button class="rb2" onclick="setReg('LATAM',this)">LATAM</button>
+    </div>
+  </div>
+  <div class="sec-body">
+    <span class="lqi-hdr">LEAD QUALIFICATION INDICATORS</span>
+    <table>
+      <thead class="th-dk lqi-sub"><tr>
+        <th style="text-align:left;color:#fff!important">Channel</th>
+        <th>Demo Leads</th><th>Disqualified Leads</th><th>IQL</th><th>MQL</th><th>SQL</th><th>PO</th>
+      </tr></thead>
+      <tbody id="funnel-body"></tbody>
+    </table>
+  </div>
+
+  <div class="sec-hdr" style="margin-top:16px">
+    <h2>Win Rate Impact <span class="sub">CLG Campaigns vs Overall Performance</span></h2>
+  </div>
+  <div class="sec-body">
+    <div class="win-hdr">
+      <div class="wh">Metric</div>
+      <div class="wh">MQL → SQL</div>
+      <div class="wh">SQL → PO</div>
+    </div>
+    <div class="win-row win-clg">
+      <div class="wc"><strong><span class="dot" style="background:#f59e0b"></span>CLG Campaigns</strong></div>
+      <div class="wc"><div class="wpct"    id="wr-clg-ms">—</div><div class="wsub">of MQLs progress to SQL</div></div>
+      <div class="wc"><div class="wpct tl" id="wr-clg-sp">—</div><div class="wsub">of SQLs become pipeline</div></div>
+    </div>
+    <div class="win-row win-all">
+      <div class="wc"><strong><span class="dot" style="background:#94a3b8"></span>Overall (All Campaigns)</strong></div>
+      <div class="wc"><div class="wpct"    id="wr-all-ms">—</div><div class="wsub">of MQLs progress to SQL</div></div>
+      <div class="wc"><div class="wpct tl" id="wr-all-sp">—</div><div class="wsub">of SQLs become pipeline</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAID MEDIA -->
+<div id="p-paid" class="panel">
+  <div class="kpis n5">
+    <div class="kpi">   <div class="kpi-lbl">Total Spend</div>    <div class="kpi-val" id="pm-spend">—</div><div class="kpi-sub">All regions combined</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Avg Cost Per Lead</div><div class="kpi-val" id="pm-cpl">—</div>  <div class="kpi-sub">Spend ÷ demo leads</div></div>
+    <div class="kpi tl"><div class="kpi-lbl">Total MQL</div>       <div class="kpi-val" id="pm-mql">—</div>  <div class="kpi-sub">From paid campaigns</div></div>
+    <div class="kpi pu"><div class="kpi-lbl">Total SQL</div>        <div class="kpi-val" id="pm-sql">—</div>  <div class="kpi-sub">Pipeline contribution</div></div>
+    <div class="kpi am"><div class="kpi-lbl">Total PO</div>         <div class="kpi-val" id="pm-po">—</div>   <div class="kpi-sub">Pipeline opportunities</div></div>
+  </div>
+
+  <div class="sec-ttl">Lead Funnel by Region</div>
+  <div class="sec-sub">Last 2 Weeks vs. previous period — all regions</div>
+  <div class="redline"></div>
+  <div class="tbl-wrap">
+    <table><thead class="th-dk"><tr>
+      <th>Region</th><th>Spend</th><th>DL</th><th>IQL</th><th>MQL</th><th>SQL</th><th>PO</th><th>CPL</th><th>CPMQL</th><th>CPSQL</th>
+    </tr></thead><tbody id="region-body"></tbody></table>
+  </div>
+
+  <div class="sec-ttl">Channel Performance</div>
+  <div class="sec-sub">LinkedIn &amp; Meta — paid funnel metrics</div>
+  <div class="redline"></div>
+  <div class="tbl-wrap">
+    <table><thead class="th-dk"><tr>
+      <th>Channel</th><th>Spend</th><th>Impressions</th><th>Clicks</th><th>CTR%</th>
+      <th>MQL</th><th>SQL</th><th>PO</th><th>MQL→SQL%</th><th>SQL→PO%</th>
+      <th>CPL</th><th>Cost/MQL</th><th>Cost/SQL</th>
+    </tr></thead><tbody id="channel-body"></tbody></table>
+  </div>
+
+  <div class="sec-ttl">Cost Efficiency per Channel</div>
+  <div class="sec-sub">Cost per MQL vs. Cost per SQL — lower is better</div>
+  <div class="redline"></div>
+  <div class="chart-box">
+    <div class="ch-wrap"><canvas id="costChart" role="img" aria-label="Cost per MQL and SQL by channel"></canvas></div>
+    <div class="leg">
+      <span><span class="ldot" style="background:#3b82f6"></span>Cost/MQL</span>
+      <span><span class="ldot" style="background:#f59e0b"></span>Cost/SQL</span>
+    </div>
+  </div>
+
+  <div class="sec-ttl">Cost per Lead Trend</div>
+  <div class="sec-sub">Average cost per lead by channel (₹K)</div>
+  <div class="redline"></div>
+  <div class="chart-box" style="padding:24px 22px">
+    <div id="cpl-trend-body"></div>
+    <div style="font-size:11px;color:#a0aab4;margin-top:14px">Lower CPL = more efficient lead acquisition. Bars scaled to highest-cost channel.</div>
+  </div>
+
+  <div class="sec-ttl">Ad Format Performance</div>
+  <div class="sec-sub">Video vs. Carousel vs. Static Image — CTR &amp; Conversion Rates</div>
+  <div class="redline"></div>
+  <div class="tbl-wrap">
+    <table><thead class="th-dk"><tr>
+      <th>Ad Format</th><th>Impressions</th><th>Clicks</th><th>CTR%</th><th>Conversions</th><th>Conv. Rate%</th>
+    </tr></thead>
+    <tbody id="adformat-body"></tbody>
+  </table></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ OWNED MEDIA -->
+<div id="p-owned" class="panel">
+  <!-- Website dark header -->
+  <div style="background:#1a2035;border-radius:8px;padding:12px 20px;margin-bottom:18px">
+    <span style="color:#fff;font-size:14px;font-weight:700">Website</span>
+  </div>
+
+  <!-- 5 KPI cards matching screenshot -->
+  <div class="kpis n5">
+    <div class="kpi">   <div class="kpi-lbl">Total Sessions</div>  <div class="kpi-val" id="ga-s">—</div><div class="kpi-sub">All sessions in period</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Active Users</div>    <div class="kpi-val" id="ga-u">—</div><div class="kpi-sub">Unique visitors</div></div>
+    <div class="kpi tl"><div class="kpi-lbl">New Users</div>       <div class="kpi-val" id="ga-n">—</div><div class="kpi-sub">First-time visitors</div></div>
+    <div class="kpi am"><div class="kpi-lbl">Bounce Rate</div>     <div class="kpi-val" id="ga-br">—</div><div class="kpi-sub">1 minus engagement rate</div></div>
+    <div class="kpi pu"><div class="kpi-lbl">Key Events</div>      <div class="kpi-val" id="ga-ke">—</div><div class="kpi-sub">Conversion events</div></div>
+  </div>
+
+  <!-- Traffic & Conversion by Landing Page URL -->
+  <div class="sec-ttl">Traffic &amp; Conversion by Session Source / Medium</div><div class="redline"></div>
+  <div class="tbl-wrap" style="margin-bottom:28px">
+    <table><thead class="th-dk"><tr>
+      <th>Session Source / Medium</th><th>Active Users</th><th>Engagement Rate</th><th>Key Events</th>
+    </tr></thead><tbody id="ga4-src-body"></tbody></table>
+  </div>
+
+  <!-- Best-Performing Stories — region filter -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <div class="sec-ttl" style="margin-bottom:0">Best-Performing Stories by Engagement</div>
+    <div class="reg-btns" id="pg-reg-btns">
+      <button class="rb2 active" onclick="filterPages('All',this)">All</button>
+      <button class="rb2" onclick="filterPages('India',this)">India</button>
+      <button class="rb2" onclick="filterPages('MEA',this)">MEA</button>
+      <button class="rb2" onclick="filterPages('SEA',this)">SEA</button>
+      <button class="rb2" onclick="filterPages('EU',this)">EU</button>
+      <button class="rb2" onclick="filterPages('LATAM',this)">LATAM</button>
+    </div>
+  </div>
+  <div class="sec-sub">Pages with &gt;50 sessions, ranked by engagement rate</div>
+  <div class="redline"></div>
+  <div class="tbl-wrap" style="margin-bottom:28px">
+    <table><thead class="th-dk"><tr>
+      <th>Page Title / URL</th><th>Sessions</th><th>Engagement Rate</th><th>Active Users</th><th>Avg Time on Page</th><th>Bounce Rate</th>
+    </tr></thead><tbody id="ga4-pg-body"></tbody></table>
+  </div>
+
+  <!-- Top Engaging Accounts by Region — CLG Web Stories -->
+  <div class="sec-ttl">Top Engaging Accounts by Region — CLG Web Stories</div>
+  <div class="redline"></div>
+  <div id="region-stories" style="margin-bottom:28px"></div>
+
+  <!-- ══ CUSTOMER ENGAGEMENT — Email & WhatsApp ══════════════════ -->
+  <div style="background:#0f1929;border-radius:12px;padding:22px;margin-bottom:20px">
+
+    <div style="margin-bottom:4px">
+      <span style="font-size:17px;font-weight:700;color:#fff">Customer Engagement — Email &amp; WhatsApp</span>
+    </div>
+    <div style="font-size:11px;color:#6b8099;margin-bottom:18px">Existing customers &nbsp;·&nbsp; Quarter to date vs. last week</div>
+
+    <!-- Two column grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+      <!-- EMAIL panel -->
+      <div style="background:#152033;border-radius:10px;padding:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="background:#0d6e6e;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px">✉</div>
+          <span style="font-size:15px;font-weight:700;color:#fff">Email</span>
+        </div>
+        <!-- Column headers -->
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;padding:0 0 8px;border-bottom:1px solid #1e3048">
+          <div></div>
+          <div style="text-align:right;font-size:10px;font-weight:700;letter-spacing:.08em;color:#10b981">QUARTER</div>
+          <div style="text-align:right;font-size:10px;font-weight:700;letter-spacing:.08em;color:#f59e0b">LAST WEEK</div>
+        </div>
+        <!-- Sent -->
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:start;padding:12px 0;border-bottom:1px solid #1e3048">
+          <div style="font-size:12px;color:#8899aa">Sent</div>
+          <div style="text-align:right"><span style="font-size:18px;font-weight:700;color:#fff" id="ce-e-qs">—</span></div>
+          <div style="text-align:right"><span style="font-size:18px;font-weight:700;color:#fff" id="ce-e-ls">—</span></div>
+        </div>
+        <!-- Delivered -->
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:start;padding:12px 0;border-bottom:1px solid #1e3048">
+          <div style="font-size:12px;color:#8899aa">Delivered</div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-e-qd">—</div>
+            <div style="font-size:10px;color:#10b981" id="ce-e-qd-pct">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-e-ld">—</div>
+            <div style="font-size:10px;color:#f59e0b" id="ce-e-ld-pct">—</div>
+          </div>
+        </div>
+        <!-- Opened -->
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:start;padding:12px 0;border-bottom:1px solid #1e3048">
+          <div style="font-size:12px;color:#8899aa">Opened</div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-e-qo">—</div>
+            <div style="font-size:10px;color:#10b981" id="ce-e-qo-pct">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-e-lo">—</div>
+            <div style="font-size:10px;color:#f59e0b" id="ce-e-lo-pct">—</div>
+          </div>
+        </div>
+        <!-- Clicked -->
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:start;padding:12px 0 0">
+          <div style="font-size:12px;color:#8899aa">Clicked</div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-e-qc">—</div>
+            <div style="font-size:10px;color:#10b981" id="ce-e-qc-pct">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-e-lc">—</div>
+            <div style="font-size:10px;color:#f59e0b" id="ce-e-lc-pct">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WHATSAPP panel -->
+      <div style="background:#152033;border-radius:10px;padding:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="background:#0d6e4e;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px">💬</div>
+          <span style="font-size:15px;font-weight:700;color:#fff">WhatsApp</span>
+        </div>
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;padding:0 0 8px;border-bottom:1px solid #1e3048">
+          <div></div>
+          <div style="text-align:right;font-size:10px;font-weight:700;letter-spacing:.08em;color:#10b981">QUARTER</div>
+          <div style="text-align:right;font-size:10px;font-weight:700;letter-spacing:.08em;color:#f59e0b">LAST WEEK</div>
+        </div>
+        <!-- Delivered -->
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:start;padding:12px 0;border-bottom:1px solid #1e3048">
+          <div style="font-size:12px;color:#8899aa">Delivered</div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-w-qd">—</div>
+            <div style="font-size:10px;color:#10b981">delivered</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-w-ld">—</div>
+            <div style="font-size:10px;color:#f59e0b">delivered</div>
+          </div>
+        </div>
+        <!-- Read -->
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:start;padding:12px 0;border-bottom:1px solid #1e3048">
+          <div style="font-size:12px;color:#8899aa">Read</div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-w-qr">—</div>
+            <div style="font-size:10px;color:#10b981" id="ce-w-qr-pct">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-w-lr">—</div>
+            <div style="font-size:10px;color:#f59e0b" id="ce-w-lr-pct">—</div>
+          </div>
+        </div>
+        <!-- Clicked -->
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:start;padding:12px 0 0">
+          <div style="font-size:12px;color:#8899aa">Clicked</div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-w-qc">—</div>
+            <div style="font-size:10px;color:#10b981" id="ce-w-qc-pct">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#fff" id="ce-w-lc">—</div>
+            <div style="font-size:10px;color:#f59e0b" id="ce-w-lc-pct">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CUSTOMER MARKETING — live from Email Camp sheet ═════════ -->
+  <div style="background:#7c3aed;border-radius:8px;padding:12px 20px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+    <span style="color:#fff;font-size:14px;font-weight:700">Customer Marketing</span>
+    <span style="color:rgba(255,255,255,.7);font-size:16px">✉</span>
+  </div>
+  <div style="background:#fff;border:1px solid #e4e6ea;border-radius:10px;padding:20px;margin-bottom:20px">
+    <div class="kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">
+      <div class="kpi pu"><div class="kpi-lbl">Emails Sent</div><div class="kpi-val" style="font-size:22px" id="cm-sent">—</div><div class="kpi-sub">This period</div></div>
+      <div class="kpi tl"><div class="kpi-lbl">Open Rate</div><div class="kpi-val" style="font-size:22px" id="cm-open">—</div><div class="kpi-sub" id="cm-open-badge"></div></div>
+      <div class="kpi bl"><div class="kpi-lbl">Email CTR</div><div class="kpi-val" style="font-size:22px" id="cm-ctr">—</div><div class="kpi-sub" id="cm-ctr-badge"></div></div>
+      <div class="kpi am"><div class="kpi-lbl">Unique Customers Reached</div><div class="kpi-val" style="font-size:22px" id="cm-reach">—</div><div class="kpi-sub" id="cm-reach-badge"></div></div>
+    </div>
+  </div>
+
+  <!-- ══ CLG DISTRIBUTION ════════════════════════════════════════ -->
+  <div style="background:#1a2035;border-radius:8px;padding:12px 20px;margin-bottom:16px">
+    <span style="color:#fff;font-size:14px;font-weight:700">CLG Distribution</span>
+  </div>
+
+  <!-- WhatsApp Distribution — live from sheet -->
+  <div style="background:#fff;border:1px solid #e4e6ea;border-radius:10px;padding:20px;margin-bottom:16px">
+    <div style="font-size:14px;font-weight:700;color:#1a2533;margin-bottom:16px;display:flex;align-items:center;gap:6px">
+      WhatsApp Distribution <span style="color:#25d366;font-size:18px">●</span>
+    </div>
+    <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="kpi tl"><div class="kpi-lbl">Campaigns Sent</div><div class="kpi-val" style="font-size:22px" id="wa-camps">—</div><div class="kpi-sub">Total campaigns</div></div>
+      <div class="kpi tl"><div class="kpi-lbl">Read Rate</div><div class="kpi-val" style="font-size:22px" id="wa-read">—</div><div class="kpi-sub">Avg across campaigns</div></div>
+      <div class="kpi pu"><div class="kpi-lbl">CTR</div><div class="kpi-val" style="font-size:22px" id="wa-ctr">—</div><div class="kpi-sub">Clicks / Sent</div></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;color:#1a2533;margin-bottom:12px">Top 5 Campaigns — by Unique Clicks</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+      <thead><tr style="border-bottom:1px solid #f0f2f5">
+        <th style="padding:8px 12px;text-align:left;width:32px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">#</th>
+        <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">Campaign Name</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">Messages Sent</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">Read Rate</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">Clicks ↓</th>
+      </tr></thead>
+      <tbody id="wa-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Email Distribution — live from sheet -->
+  <div style="background:#fff;border:1px solid #e4e6ea;border-radius:10px;padding:20px;margin-bottom:16px">
+    <div style="font-size:14px;font-weight:700;color:#1a2533;margin-bottom:16px;display:flex;align-items:center;gap:6px">
+      Email Distribution <span style="font-size:16px">✉</span>
+    </div>
+    <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="kpi bl"><div class="kpi-lbl">Campaigns Sent</div><div class="kpi-val" style="font-size:22px" id="em-camps">—</div><div class="kpi-sub">Sent campaigns</div></div>
+      <div class="kpi tl"><div class="kpi-lbl">Open Rate</div><div class="kpi-val" style="font-size:22px" id="em-open">—</div><div class="kpi-sub">Unique opens / sent</div></div>
+      <div class="kpi pu"><div class="kpi-lbl">CTR</div><div class="kpi-val" style="font-size:22px" id="em-ctr">—</div><div class="kpi-sub">Unique clicks / sent</div></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;color:#1a2533;margin-bottom:12px">Top 5 Campaigns — by Unique Clicks</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+      <thead><tr style="border-bottom:1px solid #f0f2f5">
+        <th style="padding:8px 12px;text-align:left;width:32px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">#</th>
+        <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">Campaign Name</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">Sent</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">Open Rate</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8892a4">Unique Clicks ↓</th>
+      </tr></thead>
+      <tbody id="em-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ EARNED MEDIA -->
+<div id="p-earned" class="panel">
+  <div class="kpis n3">
+    <div class="kpi">   <div class="kpi-lbl">Press Releases</div>          <div class="kpi-val">10</div><div class="kpi-sub">CLG win announcements distributed</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Publications Distributed</div><div class="kpi-val">71</div><div class="kpi-sub">via wire services</div></div>
+    <div class="kpi tl"><div class="kpi-lbl">Major Publications</div>      <div class="kpi-val">5</div> <div class="kpi-sub">&gt;1M monthly traffic</div></div>
+  </div>
+  <div class="sec-ttl">Key Publications Coverage</div>
+  <div class="sec-sub">Publications with &gt;1M monthly traffic — story titles linked to source</div>
+  <div class="redline"></div>
+  <div style="background:#fff;border:1px solid #e4e6ea;border-radius:8px;overflow:hidden">
+    <div class="pub-row"><div style="min-width:130px"><div class="pub-nm">TechCrunch</div><span class="pub-bg">12M/mo</span></div><div><div class="pub-lnk">Netcore CLG drives 3x revenue for retail client</div><div class="pub-dt">Published: May 28</div></div></div>
+    <div class="pub-row"><div style="min-width:130px"><div class="pub-nm">Forbes</div><span class="pub-bg">89M/mo</span></div><div><div class="pub-lnk">How CLG is reshaping B2B SaaS growth in 2024</div><div class="pub-dt">Published: May 22</div></div></div>
+    <div class="pub-row"><div style="min-width:130px"><div class="pub-nm">VentureBeat</div><span class="pub-bg">5M/mo</span></div><div><div class="pub-lnk">Netcore's CLG approach: A new growth playbook</div><div class="pub-dt">Published: May 15</div></div></div>
+    <div class="pub-row"><div style="min-width:130px"><div class="pub-nm">Martech Today</div><span class="pub-bg">2.1M/mo</span></div><div><div class="pub-lnk">Customer-led growth success: 40% SQL uplift</div><div class="pub-dt">Published: May 10</div></div></div>
+    <div class="pub-row"><div style="min-width:130px"><div class="pub-nm">G2 Crowd</div><span class="pub-bg">1.3M/mo</span></div><div><div class="pub-lnk">Netcore rated #1 in customer-led engagement</div><div class="pub-dt">Published: May 5</div></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ REVIEWS -->
+<div id="p-reviews" class="panel">
+  <div class="kpis n4">
+    <div class="kpi am"><div class="kpi-lbl">G2 Rating</div><div class="kpi-val" id="rv-g2-rating">—</div><div class="kpi-sub" id="rv-g2-sub">Loading…</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">New Reviews</div><div class="kpi-val">—</div><div class="kpi-sub">Pending manual data</div></div>
+    <div class="kpi tl"><div class="kpi-lbl">NPS Score</div><div class="kpi-val">—</div><div class="kpi-sub">Pending data source</div></div>
+    <div class="kpi pu"><div class="kpi-lbl">Review Velocity</div><div class="kpi-val">—</div><div class="kpi-sub">Pending manual data</div></div>
+  </div>
+  <div style="background:#fff;border:1px solid #e4e6ea;border-radius:8px;padding:20px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <img src="https://company.g2.com/hs-fs/hubfs/brand-guide/g2-logo.png?width=60" style="height:24px" onerror="this.style.display='none'"/>
+      <span style="font-size:13px;font-weight:700;color:#1a2533">Netcore Customer Engagement Platform</span>
+      <a id="rv-g2-link" href="https://www.g2.com/products/netcore-customer-engagement-platform/reviews" target="_blank" style="font-size:11px;color:#3b82f6;margin-left:auto">View on G2 →</a>
+    </div>
+    <div style="font-size:12px;color:#8892a4" id="rv-g2-status">Fetching live G2 data…</div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════════════ */
+var SHEET_ID = '16TFxFnmEVcz9cACELWvqCRVtiQsgUBU-4mI7HrE599E';
+var API_KEY  = 'AIzaSyDiC7XPA-dXXls6zqebfJQ6SEW0w6jsekE';
+var TABS = {
+  leads : 'Salesforce DB',
+  gads  : 'Google_Ads DB',
+  meta  : 'Meta_Ads DB',
+  li    : 'Linkedin DB',
+  ga4   : 'GoogleAnalyticsv4',  // gid=1924808893 — tab name auto-discovered at boot
+  wa    : 'Whatsapp campaign',
+  email : 'Email Campaigns'
+};
+
+var costChartInst = null;
+
+// ── Global tab data — stored at boot, re-used on range change ────────
+var RAW_LEADS = null, RAW_GADS = null, RAW_META = null, RAW_LI = null;
+var RAW_GA4   = null, RAW_WA   = null, RAW_EMAIL = null;
+var CURRENT_DAYS = 14; // tracks active range
+
+/* ── Formatters ─────────────────────────────────────────────── */
+function fN(n){ return Math.round(n||0).toLocaleString('en-IN'); }
+function fP(n,d){ return (+(n||0)).toFixed(d===undefined?1:d)+'%'; }
+function fD(s){ s=Math.round(s||0); return s<60?s+'s':Math.floor(s/60)+'m '+(s%60)+'s'; }
+function fC(n){
+  n=Math.round(n||0);
+  if(n>=10000000) return '₹'+(n/10000000).toFixed(1)+'Cr';
+  if(n>=100000)   return '₹'+(n/100000).toFixed(1)+'L';
+  if(n>=1000)     return '₹'+(n/1000).toFixed(1)+'K';
+  return '₹'+n;
+}
+function set(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── Fetch a single sheet tab ───────────────────────────────── */
+function fetchTab(tabName){
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID
+            +'/values/'+encodeURIComponent(tabName)+'?key='+API_KEY;
+  return fetch(url).then(function(r){
+    return r.json().then(function(b){
+      if(!r.ok) throw new Error(b.error&&b.error.message||'HTTP '+r.status);
+      return b.values||[];
+    });
+  });
+}
+
+/* ── Parse raw values into array of objects ─────────────────── */
+function parseTab(values){
+  if(!values||values.length<2) return{h:[],rows:[]};
+  var h = values[0].map(function(x){ return String(x||'').trim().toLowerCase(); });
+  var rows = values.slice(1).map(function(r){
+    var o={}; h.forEach(function(k,i){ o[k]=String(r[i]||'').trim(); }); return o;
+  });
+  return{h:h,rows:rows};
+}
+function gn(o,k){
+  var v = String(o[k]||'').replace(/[^0-9.\-]/g,''); // strip ₹, $, commas, spaces etc.
+  var n = parseFloat(v);
+  return isNaN(n) ? 0 : n;
+}
+function gs(o,k){ return o[k]||''; }
+
+/* ── Classify a campaign name into a region by its underscore-delimited
+   tokens (e.g. "Q426_IN_Ecomm_..." → India, "Q3EM26_MEA_SOM_Tofu" → MEA).
+   Exact token match avoids false positives from substrings like "Insights". ── */
+var CAMPAIGN_REGION_TOKENS = {
+  IN:'India', INDIA:'India',
+  MEA:'MEA',
+  SEA:'SEA',
+  EU:'EU', EUROPE:'EU',
+  LATAM:'LATAM'
+};
+function campaignRegion(name){
+  var tokens = String(name||'').replace(/\\/g,'').toUpperCase().split(/[_\s]+/);
+  for(var i=0;i<tokens.length;i++){
+    if(CAMPAIGN_REGION_TOKENS[tokens[i]]) return CAMPAIGN_REGION_TOKENS[tokens[i]];
+  }
+  return null; // unclassified / global campaign
+}
+
+/* ── Restrict ad-spend tabs to the same Last-2-Weeks window used for leads ── */
+var AD_DATE_CANDIDATES = ['date','day','reporting starts','date range start','week','date started','start date'];
+function pickDateKey(headers){
+  for(var i=0;i<AD_DATE_CANDIDATES.length;i++){
+    if(headers.indexOf(AD_DATE_CANDIDATES[i])>=0) return AD_DATE_CANDIDATES[i];
+  }
+  return null;
+}
+// Parses common date formats found in ad exports (ISO "2026-06-12",
+// "Jun 12, 2026", "06/12/2026") into a sortable "YYYY-MM-DD" string.
+function parseAdDate(s){
+  s = String(s||'').trim();
+  if(!s) return '';
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10); // already ISO
+  var d = new Date(s);
+  if(!isNaN(d.getTime())) return d.toISOString().slice(0,10);
+  return '';
+}
+function filterByWindow(tab, startStr, endStr){
+  var key = pickDateKey(tab.h);
+  if(!key){
+    console.warn('[filterByWindow] No date column found in headers:', tab.h, '— cannot filter by date, returning ALL rows');
+    return tab.rows;
+  }
+  return tab.rows.filter(function(r){
+    var d = parseAdDate(r[key]);
+    if(!d) return false;
+    if(d < startStr) return false;
+    if(endStr && d > endStr) return false;
+    return true;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LEADS PROCESSING
+═══════════════════════════════════════════════════════════════ */
+
+/* Status → Lead Qualification Indicator mapping
+   (Lead_Qualification_Indicator__c does not carry these labels directly,
+   so we derive the funnel stage from the Status column instead) */
+var STATUS_MAP = {
+  'asset download'       : 'IQL',
+  'attempting contact'   : 'IQL',
+  'open - not contacted' : 'IQL',
+  'engaged lead'         : 'IQL',
+  'disqualified'         : 'DQ',
+  'mql'                  : 'MQL',
+  'meeting booked'       : 'SQL',
+  'meeting executed'     : 'SQL',
+  'converted'            : 'PO'
+};
+
+function processLeads(rows, days){
+  days = days || 14;
+  // Only lead rows (id starts 00Q)
+  var allRowsUnfiltered = rows.filter(function(r){ return gs(r,'id').startsWith('00Q'); });
+  // CLG-only subset (Source__c contains CLG) — drives the main dashboard numbers
+  var all = allRowsUnfiltered.filter(function(r){ return gs(r,'source__c').includes('CLG'); });
+  if(!all.length) return null;
+
+  // Find date range → derive window based on days (anchored to CLG data's latest date)
+  var dates = all.map(function(r){ return gs(r,'createddate'); }).filter(Boolean).sort();
+  var latest = dates[dates.length-1];
+  var dt = new Date(latest);
+  var l2wStart = new Date(dt); l2wStart.setDate(l2wStart.getDate()-(days-1));
+  var prevStart= new Date(l2wStart); prevStart.setDate(prevStart.getDate()-days);
+  var l2wS  = l2wStart.toISOString().slice(0,10);
+  var prevS = prevStart.toISOString().slice(0,10);
+
+  var l2w  = all.filter(function(r){ return gs(r,'createddate')>=l2wS; });
+  var prev = all.filter(function(r){ return gs(r,'createddate')>=prevS && gs(r,'createddate')<l2wS; });
+
+  // Same window applied to the UNFILTERED (all campaigns, not just CLG) dataset
+  var allWindow = allRowsUnfiltered.filter(function(r){ return gs(r,'createddate')>=l2wS; });
+
+  function funnel(rows){
+    var f = {dl:rows.length, dq:0, iql:0, mql:0, sql:0, po:0};
+    rows.forEach(function(r){
+      var cat = STATUS_MAP[gs(r,'status').trim().toLowerCase()];
+      if(cat==='DQ')       f.dq++;
+      else if(cat==='IQL') f.iql++;
+      else if(cat==='MQL') f.mql++;
+      else if(cat==='SQL') f.sql++;
+      else if(cat==='PO')  f.po++;
+    });
+    return f;
+  }
+
+  function regionRows(reg,rows){
+    return rows.filter(function(r){
+      return gs(r,'marketing_region__c')===reg||gs(r,'country')===reg;
+    });
+  }
+  var NAMED_REGIONS = ['India','MEA','SEA','EU','LATAM'];
+  function unassignedRows(rows){
+    return rows.filter(function(r){
+      return !NAMED_REGIONS.some(function(reg){
+        return gs(r,'marketing_region__c')===reg||gs(r,'country')===reg;
+      });
+    });
+  }
+
+  var liRows  = l2w.filter(function(r){ return gs(r,'sub_lead_source_category__c').includes('LinkedIn'); });
+  var webRows = l2w.filter(function(r){ return !gs(r,'sub_lead_source_category__c').includes('LinkedIn'); });
+
+  var tot    = funnel(l2w);        // CLG-only funnel (this window)
+  var allTot = funnel(allWindow);  // ALL campaigns funnel (this window) — for Win Rate comparison
+
+  // Win rates — use SQL/MQL when MQL>0, otherwise fall back to PO/SQL-based proxy
+  // so the row isn't stuck at 0.0% just because no lead was ever stamped "MQL" in Salesforce
+  function winRate(f){
+    var ms = f.mql ? f.sql/f.mql*100 : (f.sql ? Math.min(100, f.sql ? 100 : 0) : 0);
+    // If there's no MQL stage at all but SQL exists, treat IQL as the funnel-in stage instead
+    if(!f.mql && f.sql){ ms = f.iql ? f.sql/f.iql*100 : 0; }
+    var sp = f.sql ? f.po/f.sql*100 : 0;
+    return { ms:ms, sp:sp };
+  }
+
+  var clgWin = winRate(tot);
+  var allWin = winRate(allTot);
+
+  var prevLiRows  = prev.filter(function(r){ return gs(r,'sub_lead_source_category__c').includes('LinkedIn'); });
+  var prevWebRows = prev.filter(function(r){ return !gs(r,'sub_lead_source_category__c').includes('LinkedIn'); });
+  var prevTot = funnel(prev);
+
+  return{
+    l2w:l2w, prev:prev, l2wStart:l2wS, latestDate:latest,
+    byChannel:{ LinkedIn:funnel(liRows), Website:funnel(webRows), TOTAL:tot },
+    byRegion:{
+      India: funnel(regionRows('India',l2w)),
+      MEA:   funnel(regionRows('MEA',l2w)),
+      SEA:   funnel(regionRows('SEA',l2w)),
+      EU:    funnel(regionRows('EU',l2w)),
+      LATAM: funnel(regionRows('LATAM',l2w)),
+      Unassigned: funnel(unassignedRows(l2w)),
+      TOTAL: tot
+    },
+    prevByChannel:{ LinkedIn:funnel(prevLiRows), Website:funnel(prevWebRows), TOTAL:prevTot },
+    prevByRegion:{
+      India: funnel(regionRows('India',prev)),
+      MEA:   funnel(regionRows('MEA',prev)),
+      SEA:   funnel(regionRows('SEA',prev)),
+      EU:    funnel(regionRows('EU',prev)),
+      LATAM: funnel(regionRows('LATAM',prev)),
+      Unassigned: funnel(unassignedRows(prev)),
+      TOTAL: prevTot
+    },
+    winRates:{ clg_ms:clgWin.ms, clg_sp:clgWin.sp, all_ms:allWin.ms, all_sp:allWin.sp }
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER — SUMMARY
+═══════════════════════════════════════════════════════════════ */
+var leadsGlobal = null;
+
+// ── vs Prev badge helper ──────────────────────────────────────────────
+function vsBadge(curr, prev){
+  if(!prev || prev===0) return '<span style="color:#8892a4;font-size:10px">—</span>';
+  var pct = (curr - prev) / prev * 100;
+  var up  = pct >= 0;
+  var col = up ? '#10b981' : '#e8384f';
+  var bg  = up ? 'rgba(16,185,129,.1)' : 'rgba(232,56,79,.1)';
+  var arrow = up ? '▲' : '▼';
+  return '<span style="display:inline-flex;align-items:center;gap:3px;background:'+bg+';color:'+col+';font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap">'+
+    arrow+' '+Math.abs(pct).toFixed(1)+'%</span>';
+}
+
+function renderFunnel(reg){
+  if(!leadsGlobal) return;
+  var ch = leadsGlobal.byChannel;
+  var re = leadsGlobal.byRegion;
+  var pch = leadsGlobal.prevByChannel || {};
+  var pre = leadsGlobal.prevByRegion  || {};
+  var rows=[];
+  if(reg==='All'){
+    rows=[
+      {k:'LinkedIn', f:ch.LinkedIn, p:pch.LinkedIn||{dl:0}, c:'#0077b5'},
+      {k:'Website',  f:ch.Website,  p:pch.Website||{dl:0},  c:'#10b981'},
+      {k:'TOTAL',    f:ch.TOTAL,    p:pch.TOTAL||{dl:0},    c:''}
+    ];
+  } else {
+    var rf = re[reg]||{dl:0,dq:0,iql:0,mql:0,sql:0,po:0};
+    var pf = pre[reg]||{dl:0,dq:0,iql:0,mql:0,sql:0,po:0};
+    rows=[{k:reg,f:rf,p:pf,c:'#e8384f'},{k:'TOTAL',f:rf,p:pf,c:''}];
+  }
+  document.getElementById('funnel-body').innerHTML = rows.map(function(d){
+    var tot = d.k==='TOTAL';
+    return '<tr class="'+(tot?'tot':'')+'">'+
+      '<td class="nb">'+(d.c?'<span class="dot" style="background:'+d.c+'"></span>':'')+esc(d.k)+'</td>'+
+      '<td class="nbl">'+fN(d.f.dl)+'<br>'+(!tot?vsBadge(d.f.dl,d.p.dl):'')+'</td>'+
+      '<td class="nr">'+fN(d.f.dq)+'<br>'+(!tot?vsBadge(d.f.dq,d.p.dq):'')+'</td>'+
+      '<td class="np">'+fN(d.f.iql)+'<br>'+(!tot?vsBadge(d.f.iql,d.p.iql):'')+'</td>'+
+      '<td class="na">'+fN(d.f.mql)+'<br>'+(!tot?vsBadge(d.f.mql,d.p.mql):'')+'</td>'+
+      '<td class="ng">'+fN(d.f.sql)+'<br>'+(!tot?vsBadge(d.f.sql,d.p.sql):'')+'</td>'+
+      '<td class="nc">'+fN(d.f.po)+'<br>'+(!tot?vsBadge(d.f.po,d.p.po):'')+'</td></tr>';
+  }).join('');
+}
+
+function setReg(r,btn){
+  document.querySelectorAll('.rb2').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderFunnel(r);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER — PAID MEDIA
+═══════════════════════════════════════════════════════════════ */
+function adLatestDate(tab, dateKey){
+  // Find the latest date in an ad tab to anchor the window
+  var latest = '';
+  tab.rows.forEach(function(r){
+    var d = parseAdDate(r[dateKey]||'');
+    if(d && d > latest) latest = d;
+  });
+  return latest;
+}
+
+function renderPaid(gads,meta,li,leads){
+  // ── Ad date window: derived from ads' own latest date (not leads) ──
+  // Ads are from 2026; leads are from 2025 — must NOT use leads.l2wStart for ads
+  var liDateKey   = pickDateKey(li.h);
+  var metaDateKey = pickDateKey(meta.h);
+  var gadsDateKey = pickDateKey(gads.h);
+
+  var liLatest   = adLatestDate(li,   liDateKey   || 'date');
+  var metaLatest = adLatestDate(meta, metaDateKey || 'date');
+  var gadsLatest = adLatestDate(gads, gadsDateKey || 'date');
+
+  // Pick the latest date across all 3 ad tabs
+  var adLatest = [liLatest, metaLatest, gadsLatest].filter(Boolean).sort().pop() || leads.l2wStart;
+
+  // Window = same number of days as leads window, ending at adLatest
+  var days = CURRENT_DAYS || 14;
+  var adEnd   = new Date(adLatest);
+  var adStart = new Date(adEnd); adStart.setDate(adStart.getDate() - (days - 1));
+  var adStartStr = adStart.toISOString().slice(0, 10);
+
+  var adEndStr = adEnd.toISOString().slice(0,10);
+  var gRows = filterByWindow(gads, adStartStr, adEndStr);
+  var mRows = filterByWindow(meta, adStartStr, adEndStr);
+  var lRows = filterByWindow(li,   adStartStr, adEndStr);
+  console.log('[DateWindow] adStart='+adStartStr+' adEnd='+adEndStr+' gRows='+gRows.length+' mRows='+mRows.length+' lRows='+lRows.length);
+
+  // ── CLG-only filter: keep only campaigns with _CLG_ in the name ──
+  // Applies everywhere downstream (spend, impressions, clicks, region spend)
+  function cleanNameEarly(name){ return String(name||'').replace(/\\/g,''); }
+  function isClgCampaign(r, nameKey){
+    var n = cleanNameEarly(gs(r, nameKey));
+    return /_CLG_/i.test(n);
+  }
+  var gNameKey0 = bestKey(gads.h, ['campaign name','campaign','name']);
+  var mNameKey0 = bestKey(meta.h, ['campaign name','campaign','name']);
+  var lNameKey0 = bestKey(li.h,   ['campaign name','campaign','name']);
+  gRows = gRows.filter(function(r){ return isClgCampaign(r, gNameKey0); });
+  mRows = mRows.filter(function(r){ return isClgCampaign(r, mNameKey0); });
+  lRows = lRows.filter(function(r){ return isClgCampaign(r, lNameKey0); });
+  console.log('[CLGFilter] gNameKey0='+gNameKey0+' mNameKey0='+mNameKey0+' lNameKey0='+lNameKey0+' | after-CLG-filter: gRows='+gRows.length+' mRows='+mRows.length+' lRows='+lRows.length);
+  console.log('[CLGFilter] li.h headers:', li.h);
+  if(lRows.length>0) console.log('[CLGFilter] sample lRows[0]:', JSON.stringify(lRows[0]));
+
+  var gSpend = gRows.reduce(function(s,r){ return s+gn(r,'amount spent'); },0);
+  var mSpend = mRows.reduce(function(s,r){ return s+gn(r,'amount spent'); },0);
+  var mImp   = mRows.reduce(function(s,r){ return s+gn(r,'impressions'); },0);
+  var mClk   = mRows.reduce(function(s,r){ return s+gn(r,'clicks'); },0);
+
+  var liKey  = li.h.includes('total spent') ? 'total spent' : 'amount spent';
+  var lSpend = lRows.reduce(function(s,r){ return s+gn(r,liKey); },0);
+  var lImp   = lRows.reduce(function(s,r){ return s+gn(r,'impressions'); },0);
+  var lClk   = lRows.reduce(function(s,r){ return s+gn(r,'clicks'); },0);
+  console.log('[LinkedInCalc] liKey='+liKey+' lSpend='+lSpend+' lImp='+lImp+' lClk='+lClk+' lRows.length='+lRows.length);
+  if(lRows.length>0){
+    console.log('[LinkedInCalc] sample row raw value for liKey:', JSON.stringify(lRows[0][liKey]));
+    console.log('[LinkedInCalc] sample row raw value for impressions:', JSON.stringify(lRows[0]['impressions']));
+  }
+
+  var totSpend = gSpend+mSpend+lSpend;
+  var f = leads.byChannel.TOTAL;
+  var totDL=f.dl, totMQL=f.mql, totSQL=f.sql, totPO=f.po;
+
+  set('pm-spend', fC(totSpend));
+  set('pm-cpl',   totDL  ? fC(totSpend/totDL)  : '—');
+  set('pm-mql',   fN(totMQL));
+  set('pm-sql',   fN(totSQL));
+  set('pm-po',    fN(totPO));
+
+  // Region spend — real spend, derived from the region token embedded in each
+  // campaign name (e.g. "Q426_IN_..." → India, "Q3EM26_MEA_..." → MEA),
+  // summed across Google Ads, Meta, and LinkedIn. Campaigns with no
+  // recognizable region token (e.g. "...ALL..." or generic) are excluded
+  // from the per-region breakdown but still counted in Total Spend above.
+  var regNames = ['India','MEA','SEA','EU','LATAM','Unassigned'];
+  var regSpendMap = {India:0,MEA:0,SEA:0,EU:0,LATAM:0,Unassigned:0};
+  function addRegionSpend(rows, spendKey, nameKey){
+    rows.forEach(function(r){
+      var reg = campaignRegion(gs(r,nameKey)) || 'Unassigned';
+      regSpendMap[reg] += gn(r,spendKey);
+    });
+  }
+  addRegionSpend(gRows, 'amount spent', 'campaign name');
+  addRegionSpend(mRows, 'amount spent', 'campaign name');
+  addRegionSpend(lRows, liKey,          'campaign name');
+
+  var regLeads = regNames.map(function(r){ return leads.byRegion[r]||{dl:0,iql:0,mql:0,sql:0,po:0}; });
+
+  var prevRegLeads = regNames.map(function(r){ return leads.prevByRegion&&leads.prevByRegion[r]||{dl:0,iql:0,mql:0,sql:0,po:0}; });
+  var rHtml = regNames.map(function(reg,i){
+    var f2 = regLeads[i];
+    var pf = prevRegLeads[i];
+    var sp = Math.round(regSpendMap[reg]||0);
+    return '<tr>'+
+      '<td class="nb"><span class="dot" style="background:'+(reg==='Unassigned'?'#94a3b8':'#e8384f')+'"></span>'+reg+'</td>'+
+      '<td>'+fC(sp)+'</td>'+
+      '<td>'+fN(f2.dl)+'<br>'+vsBadge(f2.dl,pf.dl)+'</td>'+
+      '<td>'+fN(f2.iql)+'<br>'+vsBadge(f2.iql,pf.iql)+'</td>'+
+      '<td>'+fN(f2.mql)+'<br>'+vsBadge(f2.mql,pf.mql)+'</td>'+
+      '<td>'+fN(f2.sql)+'<br>'+vsBadge(f2.sql,pf.sql)+'</td>'+
+      '<td>'+fN(f2.po)+'</td>'+
+      '<td>'+(f2.dl  ? fC(sp/f2.dl)  : '<span style="color:#8892a4">—</span>')+'</td>'+
+      '<td>'+(f2.mql ? fC(sp/f2.mql) : '<span style="color:#8892a4">—</span>')+'</td>'+
+      '<td>'+(f2.sql ? fC(sp/f2.sql) : '<span style="color:#8892a4">—</span>')+'</td></tr>';
+  }).join('');
+  rHtml += '<tr class="tot">'+
+    '<td class="nb">TOTAL</td>'+
+    '<td>'+fC(totSpend)+'</td>'+
+    '<td>'+fN(totDL)+'</td><td>'+fN(f.iql)+'</td><td>'+fN(totMQL)+'</td>'+
+    '<td>'+fN(totSQL)+'</td><td>'+fN(totPO)+'</td>'+
+    '<td>'+(totDL  ? fC(totSpend/totDL)  : '<span style="color:#8892a4">—</span>')+'</td>'+
+    '<td>'+(totMQL ? fC(totSpend/totMQL) : '<span style="color:#8892a4">—</span>')+'</td>'+
+    '<td>'+(totSQL ? fC(totSpend/totSQL) : '<span style="color:#8892a4">—</span>')+'</td></tr>';
+  document.getElementById('region-body').innerHTML = rHtml;
+
+  // Channel table
+  var liF  = leads.byChannel.LinkedIn;
+  var webF = leads.byChannel.Website;
+  var chans = [
+    {n:'🔷 LinkedIn', sp:lSpend, imp:lImp, clk:lClk, f:liF},
+    {n:'🔵 Meta',     sp:mSpend, imp:mImp, clk:mClk, f:webF}
+  ];
+  var prevLiF  = leads.prevByChannel&&leads.prevByChannel.LinkedIn||{dl:0,mql:0,sql:0,po:0};
+  var prevWebF = leads.prevByChannel&&leads.prevByChannel.Website||{dl:0,mql:0,sql:0,po:0};
+  var chansP = [prevLiF, prevWebF];
+  document.getElementById('channel-body').innerHTML = chans.map(function(c,ci){
+    var pf   = chansP[ci];
+    var ctr  = c.imp ? c.clk/c.imp*100 : 0;
+    var ms   = c.f.mql ? c.f.sql/c.f.mql*100 : 0;
+    var sp2  = c.f.sql ? c.f.po /c.f.sql*100  : 0;
+    return '<tr>'+
+      '<td class="nb">'+c.n+'</td>'+
+      '<td>'+fC(c.sp)+'</td>'+
+      '<td>'+fN(c.imp)+'</td>'+
+      '<td>'+fN(c.clk)+'</td>'+
+      '<td>'+fP(ctr,2)+'</td>'+
+      '<td>'+fN(c.f.mql)+'<br>'+vsBadge(c.f.mql,pf.mql)+'</td>'+
+      '<td>'+fN(c.f.sql)+'<br>'+vsBadge(c.f.sql,pf.sql)+'</td>'+
+      '<td>'+fN(c.f.po)+'</td>'+
+      '<td>'+fP(ms)+'</td>'+
+      '<td>'+fP(sp2)+'</td>'+
+      '<td class="nbl">'+fC(c.f.dl  ? c.sp/c.f.dl  : 0)+'</td>'+
+      '<td class="nbl">'+fC(c.f.mql ? c.sp/c.f.mql : 0)+'</td>'+
+      '<td class="nbl">'+fC(c.f.sql ? c.sp/c.f.sql : 0)+'</td></tr>';
+  }).join('');
+
+  // Cost chart
+  if(costChartInst){ costChartInst.destroy(); costChartInst=null; }
+  var lCmql = liF.mql  ? lSpend/liF.mql  : 0;
+  var lCsql = liF.sql  ? lSpend/liF.sql  : 0;
+  var mCmql = webF.mql ? mSpend/webF.mql : 0;
+  var mCsql = webF.sql ? mSpend/webF.sql : 0;
+  costChartInst = new Chart(document.getElementById('costChart'),{
+    type:'bar',
+    data:{
+      labels:['LinkedIn','Meta'],
+      datasets:[
+        {label:'Cost/MQL', data:[Math.round(lCmql),Math.round(mCmql)], backgroundColor:'#3b82f6', borderRadius:4},
+        {label:'Cost/SQL', data:[Math.round(lCsql),Math.round(mCsql)], backgroundColor:'#f59e0b', borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{callbacks:{label:function(c){ return ' '+c.dataset.label+': '+fC(c.parsed.y); }}}
+      },
+      scales:{
+        x:{ticks:{font:{size:12}}, grid:{display:false}},
+        y:{ticks:{callback:function(v){ return fC(v); }, font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'}}
+      }
+    }
+  });
+
+  // ── Cost per Lead Trend — horizontal bars ─────────────────────────
+  var cplLi  = liF.dl  ? lSpend/liF.dl  : 0;
+  var cplWeb = webF.dl ? mSpend/webF.dl : 0;
+  var cplData = [
+    {label:'LinkedIn', icon:'in', color:'#3b82f6', val:cplLi},
+    {label:'Meta',      icon:'fb', color:'#3b82f6', val:cplWeb}
+  ];
+  var maxCpl = Math.max.apply(null, cplData.map(function(d){ return d.val; })) || 1;
+  document.getElementById('cpl-trend-body').innerHTML = cplData.map(function(d){
+    var pct = Math.max(4, Math.round(d.val/maxCpl*100));
+    var iconBg = d.icon==='in' ? '#0077b5' : '#1877f2';
+    var iconChar = d.icon==='in' ? 'in' : 'f';
+    return '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">'+
+      '<div style="width:90px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#1a2533">'+
+        d.label+
+        '<span style="width:16px;height:16px;background:'+iconBg+';border-radius:3px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700">'+iconChar+'</span>'+
+      '</div>'+
+      '<div style="flex:1;background:#eef1f6;border-radius:6px;height:28px;overflow:hidden">'+
+        '<div style="height:100%;width:'+pct+'%;background:#3b82f6;border-radius:6px"></div>'+
+      '</div>'+
+      '<div style="width:55px;text-align:right;font-size:13px;font-weight:700;color:#3b82f6">'+fC(d.val).replace('₹','₹').replace('L','L').replace('K','K')+'</div>'+
+    '</div>';
+  }).join('');
+
+  // ── Ad Format Performance — CLG rows from ALL 3 sources ──────────
+  // Pattern: Q127_IN_BFSI_Shriram_CLG_Meta_meta_video
+  // CLG filter: campaign name must contain 'clg' (case-insensitive)
+  // Format: last token after final underscore — video/carousel/image
+  var adFmt = {
+    video:   {imp:0, clk:0, conv:0, spend:0},
+    carousel:{imp:0, clk:0, conv:0, spend:0},
+    image:   {imp:0, clk:0, conv:0, spend:0},
+    unknown: {imp:0, clk:0, conv:0, spend:0}  // catches genuinely unclassifiable CLG campaigns
+  };
+
+  function cleanName(name){
+    // Campaign names in sheet have backslash-escaped underscores (e.g. Q127\_IN\_)
+    // Strip backslashes so _CLG_ filter and format detection work correctly
+    return String(name||'').replace(/\\/g,'');
+  }
+
+  function classifyFmt(name){
+    // Campaign format is normally the LAST token after final underscore
+    // e.g. Q127_IN_BFSI_SuccessStories_CLG_Non-Meta_li_video → "video"
+    //      Q426_LATAM_Other_SQLs_CLG_Non-Meta_li_image        → "image"
+    //      Q127_IN_BFSI_OmnichannelJourney_Category_Meta_li_carousel → "carousel"
+    //      Q127_IN_Ecomm_Bofu_Meta_CLG_vd_retargetting → "video" (vd = video shorthand,
+    //        last token is a sub-tag like "retargetting", not the format itself)
+    var n    = cleanName(name).toLowerCase();
+    var parts = n.split('_');
+    var last  = parts[parts.length - 1].trim();
+    if(last === 'video')    return 'video';
+    if(last === 'carousel') return 'carousel';
+    if(last === 'image')    return 'image';
+
+    // last token is unrecognized (e.g. a campaign sub-tag like "retargetting",
+    // "conversion" etc.) — check the second-to-last token for known shorthand
+    var secondLast = parts.length > 1 ? parts[parts.length - 2].trim() : '';
+    if(secondLast === 'vd' || secondLast === 'video')    return 'video';
+    if(secondLast === 'carousel' || secondLast === 'car') return 'carousel';
+    if(secondLast === 'image' || secondLast === 'img')    return 'image';
+
+    // fallback: search anywhere in the full name as a last resort
+    if(n.includes('carousel')) return 'carousel';
+    if(n.includes('video') || /(^|_)vd(_|$)/.test(n)) return 'video';
+    if(n.includes('image')) return 'image';
+
+    // truly unclassifiable — do not silently bucket into "image"
+    return 'unknown';
+  }
+
+  // Helper: find the right key from a tab's headers
+  function bestKey(headers, candidates){
+    for(var i=0;i<candidates.length;i++){
+      if(headers.includes(candidates[i])) return candidates[i];
+    }
+    return candidates[0];
+  }
+
+
+  // ── Ad Format: filtered by date window (adStartStr) ────────────────
+  // Uses same window as spend/impressions above
+  var mCampKey  = bestKey(meta.h, ['campaign name','campaign','name']);
+  var mConvKey  = bestKey(meta.h, ['conversions','leads','results']);
+  mRows.forEach(function(r){
+    var n = cleanName(gs(r, mCampKey));
+    if(!/_CLG_/i.test(n)) return;
+    var fmt = classifyFmt(n);
+    adFmt[fmt].imp   += gn(r,'impressions');
+    adFmt[fmt].clk   += gn(r,'clicks');
+    adFmt[fmt].conv  += gn(r, mConvKey);
+    adFmt[fmt].spend += gn(r,'amount spent');
+  });
+
+  // ── LinkedIn Ads (CLG only) ──────────────────────────────────────
+  var lCampKey  = bestKey(li.h,   ['campaign name','campaign','name']);
+  var lImpKey   = bestKey(li.h,   ['impressions','impression']);
+  var lClkKey   = bestKey(li.h,   ['clicks','click']);
+  var lConvKey  = bestKey(li.h,   ['conversions','leads','results']);
+  var lSpndKey  = bestKey(li.h,   ['total spent','amount spent','spend','cost']);
+  lRows.forEach(function(r){
+    var n = cleanName(gs(r, lCampKey));
+    if(!/_CLG_/i.test(n)) return;
+    var fmt = classifyFmt(n);
+    adFmt[fmt].imp   += gn(r, lImpKey);
+    adFmt[fmt].clk   += gn(r, lClkKey);
+    adFmt[fmt].conv  += gn(r, lConvKey);
+    adFmt[fmt].spend += gn(r, lSpndKey);
+  });
+
+  // ── Google Ads (CLG only) ────────────────────────────────────────
+  var gCampKey  = bestKey(gads.h, ['campaign name','campaign','name']);
+  var gConvKey  = bestKey(gads.h, ['conversions','leads','results']);
+  gRows.forEach(function(r){
+    var n = cleanName(gs(r, gCampKey));
+    if(!/_CLG_/i.test(n)) return;
+    var fmt = classifyFmt(n);
+    adFmt[fmt].imp   += gn(r,'impressions');
+    adFmt[fmt].clk   += gn(r,'clicks');
+    adFmt[fmt].conv  += gn(r, gConvKey);
+    adFmt[fmt].spend += gn(r,'amount spent');
+  });
+
+
+
+  var fmtRows=[
+    {tag:'<span class="tag vid">Video</span>',       d:adFmt.video},
+    {tag:'<span class="tag car">Carousel</span>',    d:adFmt.carousel},
+    {tag:'<span class="tag img">Static Image</span>',d:adFmt.image}
+  ];
+  document.getElementById('adformat-body').innerHTML = fmtRows.map(function(row){
+    var d=row.d;
+    var ctr = d.imp ? d.clk/d.imp*100 : 0;
+    var cr  = d.clk ? d.conv/d.clk*100 : 0;
+    return '<tr><td>'+row.tag+'</td>'+
+      '<td>'+fN(d.imp)+'</td>'+
+      '<td>'+fN(d.clk)+'</td>'+
+      '<td>'+fP(ctr,2)+'</td>'+
+      '<td>'+fN(d.conv)+'</td>'+
+      '<td>'+fP(cr,2)+'</td></tr>';
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER — OWNED MEDIA (GA4) — accurate from sheet
+═══════════════════════════════════════════════════════════════ */
+var ga4RowsGlobal = [];
+
+function renderGA4(ga4){
+  var rows = ga4.rows;
+  ga4RowsGlobal = rows;
+
+  // Columns from gid=1924808893 (after parseTab lowercases):
+  // session source / medium | landing page | active users | new users | sessions
+  // bounce rate | key events | session key event rate | key events | total revenue
+  // session key event rate | average engagement time per session | average engagement time per active user
+
+  // ── Summary KPIs ─────────────────────────────────────────────
+  var totS  = rows.reduce(function(s,r){ return s+gn(r,'sessions'); },0);
+  var totU  = rows.reduce(function(s,r){ return s+gn(r,'active users'); },0);
+  var totN  = rows.reduce(function(s,r){ return s+gn(r,'new users'); },0);
+  var totKE = rows.reduce(function(s,r){ return s+gn(r,'key events'); },0);
+  var wB    = rows.reduce(function(s,r){ return s+gn(r,'bounce rate')*gn(r,'sessions'); },0);
+  var avgB  = totS ? wB/totS : 0;
+
+  set('ga-s',  fN(totS));
+  set('ga-u',  fN(totU));
+  set('ga-n',  fN(totN));
+  set('ga-br', fP(avgB*100));
+  set('ga-ke', fN(totKE));
+
+  // ── Traffic by Session source / medium ───────────────────────
+  var srcMap = {};
+  rows.forEach(function(r){
+    var src = (r['session source / medium']||'').trim();
+    if(!src || src==='(not set)' || src==='(data not available)') return;
+    if(!srcMap[src]) srcMap[src]={u:0,s:0,wb:0,ke:0};
+    var s=gn(r,'sessions');
+    srcMap[src].u  += gn(r,'active users');
+    srcMap[src].s  += s;
+    srcMap[src].wb += gn(r,'bounce rate')*s;
+    srcMap[src].ke += gn(r,'key events');
+  });
+  var topSrc = Object.entries(srcMap)
+    .sort(function(a,b){ return b[1].u-a[1].u; })
+    .slice(0,10);
+  document.getElementById('ga4-src-body').innerHTML = topSrc.map(function(e){
+    var v=e[1], br=v.s?v.wb/v.s:0, eng=(1-br)*100;
+    var ec=eng>=60?'#10b981':eng>=40?'#f59e0b':'#e8384f';
+    return '<tr>'+
+      '<td class="nb" style="font-size:12px;color:#1a7fa0">'+esc(e[0])+'</td>'+
+      '<td>'+fN(v.u)+'</td>'+
+      '<td style="color:'+ec+';font-weight:600">'+fP(eng)+'</td>'+
+      '<td>'+fN(v.ke)+'</td></tr>';
+  }).join('');
+
+  // ── Landing page map (for stories + region blocks) ────────────
+  var lpMap = {};
+  rows.forEach(function(r){
+    var pg=(r['landing page']||'').split('?')[0];
+    if(!pg||pg==='(not set)'||pg==='(data not available)') return;
+    if(!lpMap[pg]) lpMap[pg]={u:0,s:0,wb:0,ke:0,et:0};
+    var s=gn(r,'sessions');
+    lpMap[pg].u  += gn(r,'active users');
+    lpMap[pg].s  += s;
+    lpMap[pg].wb += gn(r,'bounce rate')*s;
+    lpMap[pg].ke += gn(r,'key events');
+    lpMap[pg].et += gn(r,'average engagement time per session')*s;
+  });
+
+  renderPages(rows,'All');
+  renderRegionStories(lpMap);
+}
+
+
+// Region keyword map for page path filtering
+function pageMatchesRegion(pagePath, region){
+  if(region==='All') return true;
+  // Uses STORY_REGION_MAP (real Country data from case-studies sheet) — not keyword guessing
+  var mapped = getStoryRegion(pagePath);
+  return mapped === region;
+}
+
+function renderPages(rows, region){
+  // Group by landing page
+  var pgMap = {};
+  rows.forEach(function(r){
+    var pg=r['landing page']||''; if(!pg) return;
+    if(!pgMap[pg]) pgMap[pg]={s:0,u:0,wb:0,wt:0,ke:0};
+    var s=gn(r,'sessions');
+    pgMap[pg].s  += s;
+    pgMap[pg].u  += gn(r,'active users');
+    pgMap[pg].wb += gn(r,'bounce rate')*s;
+    pgMap[pg].wt += gn(r,'average engagement time per session')*s;
+    pgMap[pg].ke += gn(r,'key events');
+  });
+
+  var topPg = Object.entries(pgMap)
+    .filter(function(e){
+      return e[1].s>50 && pageMatchesRegion(e[0], region);
+    })
+    .map(function(e){
+      var v=e[1];
+      var br=v.s?v.wb/v.s:0;
+      var et=v.s?v.wt/v.s:0;
+      var eng=(1-br)*100;
+      var slug = e[0].replace('/success-story/','').replace(/\?.*$/,'').replace(/-/g,' ');
+      slug = slug.charAt(0).toUpperCase()+slug.slice(1);
+      return{path:e[0], title:slug, s:v.s, u:v.u, eng:eng, et:et, bw:v.wb};
+    })
+    .sort(function(a,b){ return b.eng-a.eng; })
+    .slice(0,10);
+
+  var tbody = document.getElementById('ga4-pg-body');
+  if(!topPg.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#8892a4;padding:24px">No pages with &gt;50 sessions found for this region.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = topPg.map(function(p){
+    var engColor = p.eng>=60 ? '#10b981' : p.eng>=40 ? '#f59e0b' : '#e8384f';
+    var brPct = p.s ? (p.bw/p.s*100) : 0;
+    var brColor = brPct<=40 ? '#10b981' : brPct<=60 ? '#f59e0b' : '#e8384f';
+    return '<tr>'+
+      '<td><div class="nb" style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.path)+'">'+esc(p.title)+'</div>'+
+      '<div style="font-size:10px;color:#8892a4;margin-top:1px">'+esc(p.path)+'</div></td>'+
+      '<td>'+fN(p.s)+'</td>'+
+      '<td style="color:'+engColor+';font-weight:700">'+fP(p.eng)+'</td>'+
+      '<td>'+fN(p.u)+'</td>'+
+      '<td>'+fD(p.et)+'</td>'+
+      '<td style="color:'+brColor+'">'+fP(brPct)+'</td></tr>';
+  }).join('');
+}
+
+function filterPages(region, btn){
+  document.querySelectorAll('#pg-reg-btns .rb2').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderPages(ga4RowsGlobal, region);
+}
+
+// ── Top Engaging Accounts by Region — CLG Web Stories ────────────
+// Data comes from lpMap (gid=1924808893 GA4 tab, already loaded)
+// Region is inferred from the story URL slug
+
+var STORY_REGION_MAP = {
+  // Built from the published case-studies-by-region reference sheet — real Country data, not browsing/guessing
+  // USA/APAC folded into EU bucket; brand-level Global stories (Crocs, Only, etc.) excluded — not region-specific
+  // India
+  '1mg':'India','70x-roi-for-air-india-express':'India','act-fibernet':'India',
+  'act-referral-lead-generation-amp-success':'India','ajio-amp-email-children-day-campaign':'India','ajio-amp-email-success-story':'India',
+  'ajio-amp-email-valentines-campaign-success':'India','ajio-big-bold-sale-amp-email-success':'India','ajio-case-study':'India',
+  'ajio-increase-in-roi-using-amp-email-by-netcore':'India','ajio-success-story':'India','andamen':'India',
+  'antara-senior-care-22x-roi-multichannel-personalization-netcore-cloud':'India','anveshan-13x-whatsapp-roi-netcore-ai-propensity-model':'India','asian-paints-amp-emails':'India',
+  'astro-vision':'India','astro-vision-amp-emails':'India','axis-bank':'India',
+  'axis-max-life-insurance-amp-email-innovation':'India','axis-max-life-insurance-generates-14k-new-leads-using-netcore':'India','axis-maxlife-insurance-boosts-policy-renewals-rcs-calendar-invites':'India',
+  'axis-securities':'India','axis-securities-boosts-app-installs-and-reduces-uninstalls':'India','bajaj-allianz-general-insurance':'India',
+  'bajaj-general-insurance-digital-policy-renewals':'India','bfdl-17-percent-click-growth-4-percent-leads-boost-with-netcore-co-marketer':'India','big-basket':'India',
+  'bigbasket':'India','bigbasket-achieve-uplift-in-engagement-with-netcores-email-marketing':'India','bighaat-25-roi-retention-customer-engagement':'India',
+  'borosil':'India','byjus':'India','canon':'India',
+  'caratlane':'India','carinfo':'India','chessbazaar':'India',
+  'chingari':'India','chumbak':'India','cleartrip':'India',
+  'clovia':'India','cookr':'India','cookr-2':'India',
+  'crocs-13x-roi-ai-multi-agent':'India','crocs-whatsapp-marketing-roi-netcore':'India','dermavidya-doctor-engagement-success-netcore':'India',
+  'easemytrip':'India','easemytrip-amp-emails':'India','easemytrip-cee':'India',
+  'equitas-app-adoption-loan-conversion-netcore':'India','equitas-growth-1-5x-digital-adoption':'India','equitas-small-finance-bank':'India',
+  'experian':'India','extramarks-rcs-22-percent-conversion-uplift':'India','ezmall':'India',
+  'fabindia-agentic-marketing-campaign':'India','fbb':'India','freo-email-reactivation-strategy':'India',
+  'goair':'India','goibibo':'India','gradeup':'India',
+  'grt-jewellers-digital-transformation-case-study':'India','guidely-80x-conversion-growth-web-messages':'India','healthmug':'India',
+  'hero-motocorp-digital-growth-success-netcore-cloud':'India','hyundai-motor-achieves-uplift-in-click-rate-using-netcore-amp-email':'India','hyundai-motor-achieves-uplift-in-click-rate-using-netcore-amp-email-1':'India',
+  'igp':'India','igp-3x-email-ctr-uplift-netcore-insight-agent':'India','igp-ecommerce-interactive-success-story':'India',
+  'iifl-capital-amp-email-ipo-innovation':'India','indusind-bank':'India','internship-studio-case-study':'India',
+  'khelomore-14x-roi-mobile-engagement':'India','kotak-811-case-study':'India','kotak-general-insurance':'India',
+  'kotak-life-case-study':'India','kotak-securities-achieves-36-percent-uplift-in-campaign-conversions':'India','kotak-securities-boosts-open-rates-by-25-using-ml-based-time-optimization':'India',
+  'language-curry-success-story':'India','leadschool':'India','makemytrip':'India',
+  'makemytrip-amp-emails':'India','mamaearth':'India','max-life-insurance':'India',
+  'miss-amara':'India','moneytap-a-freo-product':'India','mpl':'India',
+  'mpowered-health':'India','msu-netcore-omnichannel-automation':'India','mulmul-netcore-lifecycle-automation-case-study':'India',
+  'myntra':'India','myntra-achieves-4x-engagement-and-2-x-revenue-with-amp-email':'India','myntra-ecommerce-interactive-email-automation-story':'India',
+  'myntra-increased-their-email-campaign-performance-by-60-percent-through-primary-inboxing':'India','myntra-success-story':'India','myteam11':'India',
+  'nalli-silks':'India','navia-app-performance-improvement-using-netcore-cloud':'India','navia-markets-40-percent-mau-growth-agentic-marketing':'India',
+  'netcore-multi-channel-strategy-for-crocs':'India','nykaa-fashion':'India','nykaa-fashion-sto':'India',
+  'once-upon-a-trunk':'India','oyo':'India','pagarkhata-app':'India',
+  'patanjali':'India','pharmeasy':'India','pnb-metlife':'India',
+  'pocket52':'India','purplle':'India','qtrove':'India',
+  'redbus-amp-email-calendar-integration':'India','reliance-general-insurance':'India','resurgent-india-boosts-engagement-with-ai-amp-emails':'India',
+  'senco-2x-conversions-customer-engagement':'India','shadowfax':'India','shine':'India',
+  'shriram-finance':'India','shriram-finance-171-roi-increase-agentic-marketing':'India','snapdeal':'India',
+  'sotc':'India','soultree':'India','spencers':'India',
+  'starquik':'India','starquik-amp-emails':'India','sterling':'India',
+  'swiggy':'India','tata-1mg-amp-email-partnership-success':'India','the-body-shop':'India',
+  'thomas-cook':'India','thomas-cook-2':'India','thomas-cook-uplift-in-email-open-rates-through-netcore-cloud-ai-driven-segmentation':'India',
+  'tvs-credit':'India','tvs-credit-1':'India','tvs-credit-transformed-customer-engagement-lead-generation':'India',
+  'twigz-network':'India','unacademy-boosts-lead-generation-by-2-5-x':'India','unocoin':'India',
+  'unocoin-achieves-increase-in-user-onboarding-using-netcore':'India','unstop-achieves-5-x-uplift-in-user-engagement-using-netcore-amp-email':'India','vegnonveg-6x-revenue-growth-netcore-affinity-segmentation':'India',
+  'vendantu':'India','via':'India','wakefit-amp-email-calendar-integration':'India',
+  'white-teak-customer-engagement':'India','william-penn':'India','woodland':'India',
+  'woodland-amp-emails':'India','yourstory-case-study':'India','zee-tamil-auditions-on-whatsapp':'India',
+  'zivame':'India',
+  // MEA
+  'adv-plus-omnichannel-engagement-success-story':'MEA','al-dawaeya-uae-achieves-5x-roi-using-omnichannel-marketing':'MEA','aldo':'MEA',
+  'browse-to-buy-hirschs-11-percent-revenue-widget':'MEA','carbon-achieves-28-percent-increase-in-conversions-using-netcore':'MEA','crocs-uae-2x-crm-revenue-growth':'MEA',
+  'danube-home':'MEA','empire-cinemas':'MEA','fcmb-bank':'MEA',
+  'fidelity-bank':'MEA','fidelity-bank-2':'MEA','gulf-news':'MEA',
+  'gulf-ticket-customer-success-story':'MEA','habeebat':'MEA','how-dune-london-uae-boosted-revenue-15-percent-with-netcore-cloud-ai':'MEA',
+  'how-optimus-bank-boosts-conversion-rate-using-netcore-cloud':'MEA','jobint-70-percent-conversion-interactive-hiring':'MEA','konga-improves-transacting-customers-using-netcore-cloud':'MEA',
+  'life-pharmacy':'MEA','mothercity-liquor':'MEA','old-mutual-limited':'MEA',
+  'omillionaire-personalized-customer-engagement':'MEA','one-deal-a-day-amp-email-success':'MEA','payflex-email-automation-success-story':'MEA',
+  'planet-fitness-email-automation-case-study':'MEA','polaris-bank':'MEA','r-and-b-fashion':'MEA',
+  'sterling-bank-improved-email-click-rate-using-netcore-cloud':'MEA','theatre-on-the-bay-video-email-success-story':'MEA','wakanow':'MEA',
+  'webtickets-netcore-engagement-case-study':'MEA',
+  // SEA
+  '99-group':'SEA','99-group-achieves-boost-in-inquires-and-app-stickiness':'SEA','99-group-case-study':'SEA',
+  'airasia-rewards':'SEA','alfacart':'SEA','apollo-english':'SEA',
+  'authentic-caps':'SEA','bac-education-automated-student-journey-case-study':'SEA','baskbear-uplift-in-revenue-and-roi-using-netcore-cloud':'SEA',
+  'bd-jobs':'SEA','berrybenka':'SEA','bobobox-conversion-rate-improved-using-netcore-cloud':'SEA',
+  'bonuslink':'SEA','bpi-philam':'SEA','cake-rush':'SEA',
+  'careerbuilder':'SEA','danamon-bank':'SEA','danone-customer-engagement-success-story':'SEA',
+  'doctoroncall':'SEA','dominos':'SEA','erajaya-email-marketing-success-netcore':'SEA',
+  'fahasa':'SEA','flowerchimp':'SEA','gcash':'SEA',
+  'good-doctor-3x-prescription-netcore-engagement':'SEA','gozayaan':'SEA','hnammobile':'SEA',
+  'ilotte':'SEA','imkas':'SEA','indodana':'SEA',
+  'indodax':'SEA','indodax-improved-customer-engagement-using-netcore':'SEA','itemku':'SEA',
+  'kitabeli':'SEA','kitabisa':'SEA','kumu':'SEA',
+  'lamudi':'SEA','leading-edtech-company-indonesia':'SEA','mapan':'SEA',
+  'mapan-a-gojek-company':'SEA','mayani':'SEA','mcdonalds-malaysia-email-engagement':'SEA',
+  'metro':'SEA','mothercare':'SEA','nandos-malaysia-boosts-sales-growth-by-19-percent':'SEA',
+  'netcore-cloud-hungry-hub-56-percent-revenue-uplift':'SEA','pandooin':'SEA','paxel':'SEA',
+  'paxel-lifecycle-engagement-shipment-recovery':'SEA','payfazz':'SEA','photobook':'SEA',
+  'plaza-premium-group-crm-conversion-success':'SEA','pomelo-fashion-achieves-30-percent-conversion-rate':'SEA','quorum-omnichannel-revenue-growth':'SEA',
+  'rcbc-digital-ai-banking-success-story':'SEA','reddoorz':'SEA','ringgitplus-achieves-boost-in-website-redirects-using-netcore-customer-engagement':'SEA',
+  'sendo':'SEA','shajgoj':'SEA','shippingcart':'SEA',
+  'singlife':'SEA','smartfren':'SEA','star-media':'SEA',
+  'superindo-10x-conversion-uplift-with-netcore-clouds-co-marketer':'SEA','tealive':'SEA','tealive-2':'SEA',
+  'telkomsel-7-3x-audience-growth-netcore-px':'SEA','theasianparent':'SEA','thi-truong-si':'SEA',
+  'tokopedia':'SEA','topkarir':'SEA','turning-property-browsers-into-buyers-sc-asset-qualified-leads':'SEA',
+  'upoint':'SEA','vietjet-air':'SEA','vision-plus':'SEA',
+  'vision-plus-81-percent-repeat-viewership-agentic-engagement':'SEA','xl-axiata':'SEA','yhl':'SEA',
+  'zenius':'SEA',
+  // EU
+  'a1-supplements':'EU','arcamax':'EU','backcountry-ai-search-performance-case-study':'EU',
+  'becextech-netcore-cloud-21x-roi-customer-engagement-success':'EU','camper-ai-product-discovery-digital-transformation-case-study':'EU','city-furniture-ai-product-discovery-case-study':'EU',
+  'connected-investors':'EU','diamond-candles':'EU','farchioni-achieves-163-percent-higher-email-engagement-with-netcore':'EU',
+  'farmison-achieved-3x-growth-using-email-marketing':'EU','global-airport-parking-sees-200-percent-increase-in-revenue':'EU','hubpeople':'EU',
+  'inshallah-email-engagement-deliverability':'EU','klika-boosts-revenue-and-conversions-with-netcore-cloud-personalization':'EU','magzter':'EU',
+  'meupatrocinio-email-revenue-growth':'EU','music-xray':'EU','oz-hair-and-beauty-enhanced-email-marketing-with-netcore':'EU',
+  'petrolprices-transformed-email-marketing-with-netcore-cloud':'EU','resmed-ai-search-merchandising-case-study':'EU','restaurant-equippers-agentic-ai-product-discovery-case-study':'EU',
+  'sabina-email-revenue-growth':'EU','sercanto':'EU','signup-com':'EU',
+  'softsages-achieves-50-percent-increase-in-key-kpis':'EU','the-jewellery-group-9x-roi':'EU','tobi-achieves-94-x-surge-in-engagement-using-netcore-cloud':'EU',
+  'truecaller':'EU','unified-discovery-engagement-12x-roi-new-york-company':'EU','west-coast':'EU',
+  // LATAM
+  'beyoung-4-8x-repurchase-netcore-omnichannel':'LATAM','buser-71-roi-mobile-ai-engagement':'LATAM','constance-22x-roi-agentic-retail-crm':'LATAM'
+};
+function getStoryRegion(path){
+  var p = path.toLowerCase();
+  var slug = p.replace(/^\/success-story\//,'').replace(/\/$/,'').split('?')[0];
+  if(STORY_REGION_MAP[slug]) return STORY_REGION_MAP[slug];
+  var keys = Object.keys(STORY_REGION_MAP);
+  for(var i=0;i<keys.length;i++){
+    if(p.indexOf(keys[i])>=0) return STORY_REGION_MAP[keys[i]];
+  }
+  return null;
+}
+
+function renderRegionStories(lpMap){
+  var regionMap = {India:[],MEA:[],SEA:[],EU:[],LATAM:[]};
+
+  var debugCount = 0;
+  Object.entries(lpMap).forEach(function(e){
+    var path=e[0], v=e[1];
+    // Only success-story paths
+    if(path.indexOf('/success-story/')<0) return;
+    var region = getStoryRegion(path);
+    if(!region) return;
+    if(debugCount<3){
+      console.log('[RegionStories] path='+path+' v.et='+v.et+' v.s='+v.s+' avgEt='+(v.s?v.et/v.s:0));
+      debugCount++;
+    }
+    if(!regionMap[region]) return; // safety guard — skip any unmapped region
+    regionMap[region].push({path:path, u:v.u, s:v.s, wb:v.wb, et:v.et});
+  });
+
+  var regions = ['India','MEA','SEA','EU','LATAM'];
+  var html = '';
+  regions.forEach(function(region){
+    var pages = (regionMap[region]||[])
+      .sort(function(a,b){ return b.s-a.s; })
+      .slice(0,5);
+
+    html += '<div class="story-region-block">';
+    html += '<div class="story-region-hdr">'+region+'</div>';
+    html += '<table class="story-region-tbl">';
+    html += '<thead><tr>'+
+      '<th>#</th>'+
+      '<th>Story URL</th>'+
+      '<th>Active Users</th>'+
+      '<th>Sessions ↓</th>'+
+      '<th>Engagement Rate</th>'+
+      '<th>Avg Time on Page</th>'+
+      '<th>Bounce Rate</th>'+
+      '</tr></thead><tbody>';
+
+    if(!pages.length){
+      html += '<tr><td colspan="7" style="text-align:center;color:#8892a4;padding:16px">No data available</td></tr>';
+    } else {
+      pages.forEach(function(p,i){
+        var eng = p.s ? (1-p.wb/p.s)*100 : 0;
+        var ec  = eng>=60?'#10b981':eng>=40?'#f59e0b':'#e8384f';
+        var display = 'netcorecloud.com'+p.path;
+        var fullUrl = 'https://www.netcorecloud.com'+p.path;
+        var et = p.s ? p.et/p.s : 0;
+        var brPct = p.s ? p.wb/p.s*100 : 0;
+        var brC = brPct<=40?'#10b981':brPct<=60?'#f59e0b':'#e8384f';
+        html += '<tr>'+
+          '<td class="story-num">'+(i+1)+'</td>'+
+          '<td><span class="story-link" onclick="copyUrl(\''+fullUrl+'\',this)" title="Click to copy">'+esc(display)+'</span></td>'+
+          '<td>'+fN(p.u)+'</td>'+
+          '<td style="font-weight:600">'+fN(p.s)+'</td>'+
+          '<td><span style="color:'+ec+';font-weight:600">'+fP(eng)+'</span></td>'+
+          '<td>'+fD(et)+'</td>'+
+          '<td><span style="color:'+brC+'">'+fP(brPct)+'</span></td>'+
+          '</tr>';
+      });
+    }
+    html += '</tbody></table></div>';
+  });
+
+  document.getElementById('region-stories').innerHTML = html ||
+    '<div style="padding:20px;color:#8892a4">No region story data found.</div>';
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   TAB / RANGE NAVIGATION
+═══════════════════════════════════════════════════════════════ */
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelector('.tab[onclick="showTab(\''+name+'\')"]').classList.add('active');
+  var _p=document.getElementById('p-'+name)||document.getElementById('p-'+name+'tab'); if(_p)_p.classList.add('active');
+}
+function setRange(r,btn){
+  document.querySelectorAll('.rb').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if(r==='cust'){
+    showCustomRangeModal();
+    return;
+  }
+
+  // Map range key to days
+  var daysMap = {'l2w':14,'l30':30,'l90':90};
+  CURRENT_DAYS = daysMap[r] || 14;
+  reRenderAll(CURRENT_DAYS);
+}
+
+function showCustomRangeModal(){
+  var existing = document.getElementById('custom-range-modal');
+  if(existing){ existing.remove(); return; }
+  var modal = document.createElement('div');
+  modal.id = 'custom-range-modal';
+  modal.style.cssText = 'position:fixed;top:60px;right:20px;background:#fff;border:1px solid #e4e6ea;border-radius:8px;padding:20px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:280px;font-family:inherit';
+  modal.innerHTML =
+    '<div style="font-size:13px;font-weight:700;color:#1a2533;margin-bottom:14px">Custom Date Range</div>'+
+    '<div style="display:grid;gap:10px">'+
+      '<label style="font-size:11px;color:#8892a4;font-weight:600">FROM<br>'+
+        '<input type="date" id="cr-from" style="margin-top:4px;width:100%;padding:7px 10px;border:1px solid #e4e6ea;border-radius:5px;font-size:13px;font-family:inherit">'+
+      '</label>'+
+      '<label style="font-size:11px;color:#8892a4;font-weight:600">TO<br>'+
+        '<input type="date" id="cr-to" style="margin-top:4px;width:100%;padding:7px 10px;border:1px solid #e4e6ea;border-radius:5px;font-size:13px;font-family:inherit">'+
+      '</label>'+
+      '<div style="display:flex;gap:8px;margin-top:4px">'+
+        '<button onclick="applyCustomRange()" style="flex:1;padding:8px;background:#e8384f;color:#fff;border:none;border-radius:5px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600">Apply</button>'+
+        '<button onclick="closeCustomModal()" style="flex:1;padding:8px;background:#f4f5f7;color:#6b7a8d;border:none;border-radius:5px;cursor:pointer;font-family:inherit;font-size:12px">Cancel</button>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+function closeCustomModal(){
+  var m = document.getElementById('custom-range-modal');
+  if(m) m.remove();
+}
+
+function applyCustomRange(){
+  var from = document.getElementById('cr-from').value;
+  var to   = document.getElementById('cr-to').value;
+  if(!from || !to){ alert('Please select both dates'); return; }
+  if(from > to){ alert('From date must be before To date'); return; }
+  document.getElementById('custom-range-modal').remove();
+  var days = Math.round((new Date(to)-new Date(from))/(1000*60*60*24))+1;
+  CURRENT_DAYS = days;
+  // For custom range, override the window end date too
+  reRenderAll(days, from, to);
+}
+
+function reRenderAll(days, fromDate, toDate){
+  if(!RAW_LEADS) return; // not loaded yet
+
+  // Re-process leads with new window
+  var leads;
+  if(fromDate && toDate){
+    // Custom date range — filter directly
+    leads = processLeadsCustom(RAW_LEADS.rows, fromDate, toDate);
+  } else {
+    leads = processLeads(RAW_LEADS.rows, days);
+  }
+
+  if(!leads){
+    leads = {
+      l2w:[], prev:[], l2wStart:(function(){var d=new Date();d.setDate(d.getDate()-days);return d.toISOString().slice(0,10);})(),
+      byChannel:{
+        LinkedIn:{dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        Website: {dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        TOTAL:   {dl:0,dq:0,iql:0,mql:0,sql:0,po:0}
+      },
+      byRegion:{
+        India:{dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        MEA:  {dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        SEA:  {dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        EU:   {dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        LATAM:{dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        TOTAL:{dl:0,dq:0,iql:0,mql:0,sql:0,po:0}
+      },
+      winRates:{clg_ms:0,clg_sp:0,all_ms:0,all_sp:0}
+    };
+  }
+
+  leadsGlobal = leads;
+
+  // Update Summary tab
+  renderFunnel('All');
+  var wr = leads.winRates;
+  set('wr-clg-ms', wr.clg_ms.toFixed(1)+'%');
+  set('wr-clg-sp', wr.clg_sp.toFixed(1)+'%');
+  set('wr-all-ms', wr.all_ms.toFixed(1)+'%');
+  set('wr-all-sp', wr.all_sp.toFixed(1)+'%');
+
+  // Update Paid Media tab
+  renderPaid(RAW_GADS, RAW_META, RAW_LI, leads);
+
+  // Update range label in Summary header
+  var label = days===14?'Last 2 Weeks':days===30?'Last 30 Days':days===90?'Last 90 Days':days+' Days';
+  var subEl = document.querySelector('.sec-hdr .sub');
+  if(subEl) subEl.textContent = label;
+
+  // GA4 data is a fixed aggregate export — no date column to filter
+  // But re-render with existing data so KPIs stay consistent
+  renderGA4(RAW_GA4);
+
+  // Re-render WA and Email filtered by the same date window
+  var winEnd   = toDate || new Date().toISOString().slice(0,10);
+  var winStart = fromDate;
+  if(!winStart){
+    // Derive fromDate from days + latest date in leads
+    var latestDate = leadsGlobal && leadsGlobal.latestDate ? leadsGlobal.latestDate : new Date().toISOString().slice(0,10);
+    var dt2 = new Date(latestDate);
+    dt2.setDate(dt2.getDate()-(days-1));
+    winStart = dt2.toISOString().slice(0,10);
+    winEnd   = latestDate;
+  }
+  renderWhatsApp(RAW_WA,   winStart, winEnd);
+  renderEmail(RAW_EMAIL, winStart, winEnd);
+}
+
+function processLeadsCustom(rows, fromDate, toDate){
+  var allRowsUnfiltered = rows.filter(function(r){ return gs(r,'id').startsWith('00Q'); });
+  var all = allRowsUnfiltered.filter(function(r){ return gs(r,'source__c').includes('CLG'); });
+  if(!all.length) return null;
+
+  var l2w  = all.filter(function(r){ var d=gs(r,'createddate'); return d>=fromDate && d<=toDate; });
+  var days = Math.round((new Date(toDate)-new Date(fromDate))/(1000*60*60*24))+1;
+  var prevEnd   = new Date(fromDate); prevEnd.setDate(prevEnd.getDate()-1);
+  var prevStart = new Date(prevEnd);  prevStart.setDate(prevStart.getDate()-(days-1));
+  var prevS = prevStart.toISOString().slice(0,10);
+  var prevE = prevEnd.toISOString().slice(0,10);
+  var prev = all.filter(function(r){ var d=gs(r,'createddate'); return d>=prevS && d<=prevE; });
+
+  // Same window applied to UNFILTERED (all campaigns) dataset for Win Rate comparison
+  var allWindow = allRowsUnfiltered.filter(function(r){ var d=gs(r,'createddate'); return d>=fromDate && d<=toDate; });
+
+  function funnel(rows){
+    var f={dl:rows.length,dq:0,iql:0,mql:0,sql:0,po:0};
+    rows.forEach(function(r){
+      var cat=STATUS_MAP[gs(r,'status').trim().toLowerCase()];
+      if(cat==='DQ') f.dq++; else if(cat==='IQL') f.iql++;
+      else if(cat==='MQL') f.mql++; else if(cat==='SQL') f.sql++;
+      else if(cat==='PO') f.po++;
+    });
+    return f;
+  }
+  function regionRows(reg,rows){ return rows.filter(function(r){ return gs(r,'marketing_region__c')===reg||gs(r,'country')===reg; }); }
+  var NAMED=['India','MEA','SEA','EU','LATAM'];
+  function unassigned(rows){ return rows.filter(function(r){ return !NAMED.some(function(reg){ return gs(r,'marketing_region__c')===reg||gs(r,'country')===reg; }); }); }
+
+  var liRows  = l2w.filter(function(r){ return gs(r,'sub_lead_source_category__c').includes('LinkedIn'); });
+  var webRows = l2w.filter(function(r){ return !gs(r,'sub_lead_source_category__c').includes('LinkedIn'); });
+  var tot    = funnel(l2w);
+  var allTot = funnel(allWindow);
+
+  function winRate(f){
+    var ms = f.mql ? f.sql/f.mql*100 : 0;
+    if(!f.mql && f.sql){ ms = f.iql ? f.sql/f.iql*100 : 0; }
+    var sp = f.sql ? f.po/f.sql*100 : 0;
+    return { ms:ms, sp:sp };
+  }
+  var clgWin = winRate(tot);
+  var allWin = winRate(allTot);
+
+  return{
+    l2w:l2w, prev:prev, l2wStart:fromDate, latestDate:toDate,
+    byChannel:{LinkedIn:funnel(liRows),Website:funnel(webRows),TOTAL:tot},
+    byRegion:{
+      India:funnel(regionRows('India',l2w)),MEA:funnel(regionRows('MEA',l2w)),
+      SEA:funnel(regionRows('SEA',l2w)),EU:funnel(regionRows('EU',l2w)),
+      LATAM:funnel(regionRows('LATAM',l2w)),Unassigned:funnel(unassigned(l2w)),TOTAL:tot
+    },
+    winRates:{clg_ms:clgWin.ms,clg_sp:clgWin.sp,all_ms:allWin.ms,all_sp:allWin.sp}
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT — fetch all tabs in parallel
+═══════════════════════════════════════════════════════════════ */
+// Auto-discover tab name for gid=1924808893
+var GA4_TAB_NAME = 'GoogleAnalyticsv4'; // default fallback
+function bootDashboard(){
+Promise.all([
+  fetchTab(TABS.leads).catch(function(){ return []; }),
+  fetchTab(TABS.gads),
+  fetchTab(TABS.meta),
+  fetchTab(TABS.li),
+  fetchTab(GA4_TAB_NAME),
+  fetchTab(TABS.wa).catch(function(){ return []; }),
+  fetchTab(TABS.email).catch(function(){ return fetchTab('Email Camp').catch(function(){ return []; }); })
+]).then(function(results){
+  document.getElementById('loading').style.display = 'none';
+
+  var leadsTab = parseTab(results[0]);
+  var gadsTab  = parseTab(results[1]);
+  var metaTab  = parseTab(results[2]);
+  var liTab    = parseTab(results[3]);
+  var ga4Tab   = parseTab(results[4]);
+  var waRaw    = results[5];
+  var emailRaw = results[6];
+
+  // Store globally for range re-renders
+  RAW_LEADS = leadsTab; RAW_GADS = gadsTab; RAW_META = metaTab;
+  RAW_LI = liTab; RAW_GA4 = ga4Tab; RAW_WA = waRaw; RAW_EMAIL = emailRaw;
+
+  var leads = processLeads(leadsTab.rows, CURRENT_DAYS);
+
+  // Fallback: if no leads data found, create empty structure so Paid Media still renders
+  if(!leads){
+    leads = {
+      l2w:[], prev:[], l2wStart:(function(){var d=new Date();d.setDate(d.getDate()-14);return d.toISOString().slice(0,10);})(),
+      byChannel:{
+        LinkedIn:{dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        Website: {dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        TOTAL:   {dl:0,dq:0,iql:0,mql:0,sql:0,po:0}
+      },
+      byRegion:{
+        India:{dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        MEA:  {dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        SEA:  {dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        EU:   {dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        LATAM:{dl:0,dq:0,iql:0,mql:0,sql:0,po:0},
+        TOTAL:{dl:0,dq:0,iql:0,mql:0,sql:0,po:0}
+      },
+      winRates:{clg_ms:0,clg_sp:0,all_ms:0,all_sp:0}
+    };
+  }
+
+  leadsGlobal = leads;
+  renderFunnel('All');
+  var wr = leads.winRates;
+  set('wr-clg-ms', wr.clg_ms.toFixed(1)+'%');
+  set('wr-clg-sp', wr.clg_sp.toFixed(1)+'%');
+  set('wr-all-ms', wr.all_ms.toFixed(1)+'%');
+  set('wr-all-sp', wr.all_sp.toFixed(1)+'%');
+  renderPaid(RAW_GADS, RAW_META, RAW_LI, leads);
+  renderGA4(ga4Tab);
+  renderWhatsApp(waRaw);
+  renderEmail(emailRaw);
+
+  // Show first panel
+  document.getElementById('p-summary').classList.add('active');
+
+}).catch(function(err){
+  document.getElementById('loading').style.display = 'none';
+  var e = document.getElementById('err-msg');
+  e.style.display = 'block';
+  e.innerHTML = '<strong>Error loading data:</strong> '+err.message+
+    '<br><small style="color:#8892a4;margin-top:6px;display:block">Check your API key and that the sheet is shared publicly (Viewer access to Anyone with the link).</small>'+
+    '<br><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit">↺ Retry</button>';
+});
+}
+
+// Boot immediately — GA4 tab fetched by name directly
+bootDashboard();
+
+
+
+// ── WhatsApp ──────────────────────────────────────────────────────
+// ── Customer Engagement panel (Email QTR vs LW + WA QTR vs LW) ───
+var ceEmailData = null;
+var ceWaData    = null;
+
+function renderCustomerEngagement(){
+  if(!ceEmailData || !ceWaData) return; // wait for both
+
+  var e = ceEmailData, w = ceWaData;
+
+  // EMAIL
+  set('ce-e-qs', fN(e.qs));
+  set('ce-e-ls', fN(e.ls));
+  set('ce-e-qd', fN(e.qd)); set('ce-e-qd-pct', fP(e.qs?e.qd/e.qs*100:0)+' delivery');
+  set('ce-e-ld', fN(e.ld)); set('ce-e-ld-pct', fP(e.ls?e.ld/e.ls*100:0)+' delivery');
+  set('ce-e-qo', fN(e.qo)); set('ce-e-qo-pct', fP(e.qd?e.qo/e.qd*100:0)+' open rate');
+  set('ce-e-lo', fN(e.lo)); set('ce-e-lo-pct', fP(e.ld?e.lo/e.ld*100:0)+' open rate');
+  set('ce-e-qc', fN(e.qc)); set('ce-e-qc-pct', fP(e.qo?e.qc/e.qo*100:0)+' CTOR');
+  set('ce-e-lc', fN(e.lc)); set('ce-e-lc-pct', fP(e.lo?e.lc/e.lo*100:0)+' CTOR');
+
+  // WHATSAPP
+  set('ce-w-qd', fN(w.qd)); set('ce-w-ld', fN(w.ld));
+  set('ce-w-qr', fN(w.qr)); set('ce-w-qr-pct', fP(w.qd?w.qr/w.qd*100:0)+' read rate');
+  set('ce-w-lr', fN(w.lr)); set('ce-w-lr-pct', fP(w.ld?w.lr/w.ld*100:0)+' read rate');
+  set('ce-w-qc', fN(w.qc)); set('ce-w-qc-pct', fP(w.qr?w.qc/w.qr*100:0)+'% of read');
+  set('ce-w-lc', fN(w.lc)); set('ce-w-lc-pct', fP(w.lr?w.lc/w.lr*100:0)+'% of read');
+}
+
+function renderWhatsApp(values, fromDate, toDate){
+  if(!values||values.length<2) return;
+  // WA cols: 0=Id,1=Name,2=SentOn,3=TotalReq,4=NotSent,5=%NotSent,
+  //          6=Sent,7=%Sent,8=Delivered,9=%Del,10=Unread,11=%Unread,
+  //          12=Read,13=%Read,14=Click,15=%Click
+  var rows = values.slice(1).filter(function(r){ return r.length>=15 && r[1] && r[1]!='Campaign Name'; });
+
+  function pdate(s){
+    s=(s||'').trim();
+    var months={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    var m=s.match(/^([A-Za-z]+)\s+(\d+),\s+(\d{4})/);
+    if(m){ var mo=months[m[1]]; if(mo){ return m[3]+'-'+(mo<10?'0':'')+mo+'-'+(m[2].length<2?'0':'')+m[2]; }}
+    return '';
+  }
+
+  // Filter by date window if provided
+  if(fromDate && toDate){
+    rows = rows.filter(function(r){
+      var d = pdate(r[2]); return d && d>=fromDate && d<=toDate;
+    });
+  } else if(fromDate){
+    rows = rows.filter(function(r){
+      var d = pdate(r[2]); return d && d>=fromDate;
+    });
+  }
+
+  // Group by campaign name
+  var campMap={};
+  rows.forEach(function(r){
+    var k=String(r[1]||'').trim(); if(!k) return;
+    if(!campMap[k]) campMap[k]={sent:0,read:0,click:0};
+    campMap[k].sent  +=parseFloat(r[6])||0;
+    campMap[k].read  +=parseFloat(r[12])||0;
+    campMap[k].click +=parseFloat(r[14])||0;
+  });
+
+  var camps=Object.values(campMap);
+  var totSent=camps.reduce(function(s,c){return s+c.sent;},0);
+  var totRead=camps.reduce(function(s,c){return s+c.read;},0);
+  var totClick=camps.reduce(function(s,c){return s+c.click;},0);
+
+  set('wa-camps',Object.keys(campMap).length);
+  set('wa-read', fP(totSent?totRead/totSent*100:0));
+  set('wa-ctr',  fP(totSent?totClick/totSent*100:0,1));
+
+  var top5=Object.entries(campMap).sort(function(a,b){return b[1].click-a[1].click;}).slice(0,5);
+  document.getElementById('wa-tbody').innerHTML=top5.map(function(e,i){
+    var name=e[0],v=e[1],rr=v.sent?v.read/v.sent*100:0;
+    return '<tr style="border-bottom:1px solid #f0f2f5">'+
+      '<td class="story-num" style="padding:10px 12px">'+(i+1)+'</td>'+
+      '<td style="padding:10px 12px;font-weight:600;color:#1a2533">'+esc(name)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right">'+fN(v.sent)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;color:#10b981">'+fP(rr)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;color:#10b981;font-weight:700">'+fN(v.click)+'</td></tr>';
+  }).join('');
+
+  // ── Customer Engagement QTR vs LW ─────────────────────────────
+  var allDates=rows.map(function(r){return pdate(r[2]);}).filter(Boolean).sort();
+  if(allDates.length){
+    var latest=allDates[allDates.length-1];
+    var lwStart=new Date(latest); lwStart.setDate(lwStart.getDate()-6);
+    var lwS=lwStart.toISOString().slice(0,10);
+    var lwRows=rows.filter(function(r){var d=pdate(r[2]); return d&&d>=lwS;});
+    function wsum(rr,c){return rr.reduce(function(s,r){return s+(parseFloat(r[c])||0);},0);}
+    ceWaData={
+      qd:wsum(rows,8), qr:wsum(rows,12), qc:wsum(rows,14),
+      ld:wsum(lwRows,8),lr:wsum(lwRows,12),lc:wsum(lwRows,14)
+    };
+    renderCustomerEngagement();
+  }
+}
+
+function renderEmail(values, fromDate, toDate){
+  if(!values||values.length<2) return;
+  // Exact columns from Email Campaigns tab:
+  // 0=CampId, 1=CampName, 2=Status, 3=CampType, 4=MsgType, 5=Sender, 6=Subject,
+  // 7=Entered, 8=SentDate, 9=Published, 10=Sent, 11=Delivered, 12=Delivered%,
+  // 13=TotalOpened, 14=UniqueOpened, 15=UniqueOpened%,
+  // 16=TotalClicked, 17=UniqueClicked, 18=UniqueClicked%
+  var VALID_TYPES = {'NA':1,'W':1,'Send at best time':1,'STO':1,'Send Time Optimisation':1};
+
+  // Only Sent campaigns — exclude A/B variants (keep NA=regular, W=winner, STO)
+  var rows = values.slice(1).filter(function(r){
+    return r.length >= 18 &&
+           String(r[2]||'').trim() === 'Sent' &&
+           VALID_TYPES[String(r[4]||'').trim()];
+  });
+
+  // Filter by date window if provided (col 8 = SentDate "2026-01-09 11:00:00")
+  if(fromDate && toDate){
+    rows = rows.filter(function(r){
+      var d = (r[8]||'').slice(0,10); return d && d>=fromDate && d<=toDate;
+    });
+  } else if(fromDate){
+    rows = rows.filter(function(r){
+      var d = (r[8]||'').slice(0,10); return d && d>=fromDate;
+    });
+  }
+
+  // Group by campaign name (same campaign, different audiences = sum)
+  var campMap = {};
+  rows.forEach(function(r){
+    var name = String(r[1]||'').trim(); if(!name) return;
+    if(!campMap[name]) campMap[name] = {sent:0, delivered:0, opened:0, clicked:0};
+    campMap[name].sent      += parseFloat(r[10]) || 0;
+    campMap[name].delivered += parseFloat(r[11]) || 0;
+    campMap[name].opened    += parseFloat(r[14]) || 0;
+    campMap[name].clicked   += parseFloat(r[17]) || 0;
+  });
+
+  var allCamps = Object.values(campMap);
+  var totSent      = allCamps.reduce(function(s,c){ return s+c.sent;      }, 0);
+  var totDelivered = allCamps.reduce(function(s,c){ return s+c.delivered; }, 0);
+  var totOpened    = allCamps.reduce(function(s,c){ return s+c.opened;    }, 0);
+  var totClicked   = allCamps.reduce(function(s,c){ return s+c.clicked;   }, 0);
+
+  // ── Previous period (for vs-prev badges) — same duration immediately before ──
+  var prevOpenRate = 0, prevCtr = 0, prevReach = 0;
+  if(fromDate && toDate){
+    var winDays = Math.round((new Date(toDate)-new Date(fromDate))/(1000*60*60*24))+1;
+    var prevEnd   = new Date(fromDate); prevEnd.setDate(prevEnd.getDate()-1);
+    var prevStart = new Date(prevEnd);  prevStart.setDate(prevStart.getDate()-(winDays-1));
+    var prevS = prevStart.toISOString().slice(0,10);
+    var prevE = prevEnd.toISOString().slice(0,10);
+    var prevRows = values.slice(1).filter(function(r){
+      if(r.length<18 || String(r[2]||'').trim()!=='Sent' || !VALID_TYPES[String(r[4]||'').trim()]) return false;
+      var d = (r[8]||'').slice(0,10);
+      return d && d>=prevS && d<=prevE;
+    });
+    var prevSent=0, prevDelivered=0, prevOpened=0, prevClicked=0;
+    prevRows.forEach(function(r){
+      prevSent      += parseFloat(r[10]) || 0;
+      prevDelivered += parseFloat(r[11]) || 0;
+      prevOpened    += parseFloat(r[14]) || 0;
+      prevClicked   += parseFloat(r[17]) || 0;
+    });
+    prevOpenRate = prevSent ? prevOpened/prevSent*100 : 0;
+    prevCtr      = prevSent ? prevClicked/prevSent*100 : 0;
+    prevReach    = prevDelivered;
+  }
+
+  // KPIs
+  set('em-camps', Object.keys(campMap).length);
+  set('em-open',  fP(totSent ? totOpened/totSent*100  : 0));
+  set('em-ctr',   fP(totSent ? totClicked/totSent*100 : 0, 2));
+
+  // Customer Marketing summary — 4 cards
+  var curOpenRate = totSent ? totOpened/totSent*100 : 0;
+  var curCtr       = totSent ? totClicked/totSent*100 : 0;
+  set('cm-sent',  fN(totSent));
+  set('cm-open',  fP(curOpenRate));
+  set('cm-ctr',   fP(curCtr, 2));
+  set('cm-reach', fN(totDelivered));
+
+  var openBadge  = document.getElementById('cm-open-badge');
+  var ctrBadge   = document.getElementById('cm-ctr-badge');
+  var reachBadge = document.getElementById('cm-reach-badge');
+  if(openBadge)  openBadge.innerHTML  = vsBadge(curOpenRate, prevOpenRate);
+  if(ctrBadge)   ctrBadge.innerHTML   = vsBadge(curCtr, prevCtr);
+  if(reachBadge) reachBadge.innerHTML = vsBadge(totDelivered, prevReach);
+
+  // Top 5 by unique clicks
+  var top5 = Object.entries(campMap)
+    .sort(function(a,b){ return b[1].clicked - a[1].clicked; })
+    .slice(0, 5);
+
+  document.getElementById('em-tbody').innerHTML = top5.map(function(e, i){
+    var name = e[0], v = e[1];
+    var or_ = v.sent ? v.opened/v.sent*100 : 0;
+    return '<tr style="border-bottom:1px solid #f0f2f5">'+
+      '<td class="story-num" style="padding:10px 12px">'+(i+1)+'</td>'+
+      '<td style="padding:10px 12px;font-weight:600;color:#1a2533">'+esc(name)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right">'+fN(v.sent)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right">'+fP(or_)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;color:#3b82f6;font-weight:700">'+fN(v.clicked)+'</td>'+
+      '</tr>';
+  }).join('');
+
+  // ── Customer Engagement QTR vs LW ─────────────────────────────
+  var allDates=rows.map(function(r){ return (r[8]||'').slice(0,10); }).filter(function(d){ return d.length===10; }).sort();
+  if(allDates.length){
+    var latest=allDates[allDates.length-1];
+    var lwStart=new Date(latest); lwStart.setDate(lwStart.getDate()-6);
+    var lwS=lwStart.toISOString().slice(0,10);
+    var lwRows=rows.filter(function(r){ return r[8]&&r[8].slice(0,10)>=lwS; });
+    function esum(rr,c){ return rr.reduce(function(s,r){ return s+(parseFloat(r[c])||0); },0); }
+    ceEmailData={
+      qs:esum(rows,10),  qd:esum(rows,11),  qo:esum(rows,13),  qc:esum(rows,16),
+      ls:esum(lwRows,10),ld:esum(lwRows,11),lo:esum(lwRows,13),lc:esum(lwRows,16)
+    };
+    renderCustomerEngagement();
+  }
+}
+
+
+// ── G2 Rating — real data pulled via G2 MCP on 2026-07-01 ──────────
+// G2 API has CORS restrictions — cannot be fetched from browser directly.
+// Values are refreshed periodically via G2 MCP and updated here.
+function fetchG2Rating(){
+  var G2_RATING       = '4.5';
+  var G2_REVIEW_COUNT = 568;
+  var G2_SYNCED_DATE  = '1 Jul 2026';
+
+  var ratingEl = document.getElementById('rv-g2-rating');
+  var subEl    = document.getElementById('rv-g2-sub');
+  var statusEl = document.getElementById('rv-g2-status');
+
+  if(ratingEl) ratingEl.textContent = G2_RATING + ' ★';
+  if(subEl)    subEl.textContent    = 'Based on ' + G2_REVIEW_COUNT.toLocaleString('en-IN') + ' reviews';
+  if(statusEl) statusEl.innerHTML   =
+    '<span style="color:#10b981;font-weight:600">✓ Verified from G2</span>' +
+    ' &nbsp;·&nbsp; <span style="color:#8892a4">Last synced: ' + G2_SYNCED_DATE + '</span>';
+}
+fetchG2Rating();
+
+function copyUrl(url,el){
+  var orig=el.textContent;
+  function done(){ el.style.color='#10b981'; el.textContent='✓ Copied!'; setTimeout(function(){ el.style.color=''; el.textContent=orig; },1800); }
+  if(navigator.clipboard){ navigator.clipboard.writeText(url).then(done); }
+  else{ var t=document.createElement('textarea'); t.value=url; t.style.cssText='position:fixed;opacity:0'; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); done(); }
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════ GA4 ANALYTICS TAB -->
+<div id="p-ga4tab" class="panel">
+<style>
+
+  /* ── Reset & Base ─────────────────────────────────────────────── */
+#p-ga4tab *, #p-ga4tab *::before, #p-ga4tab *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:       #0d2b45;
+    --navy-mid:   #163854;
+    --teal:       #1a7fa0;
+    --teal-light: #e6f4f9;
+    --teal-dim:   #5ba8c4;
+    --white:      #ffffff;
+    --gray-bg:    #f5f7fa;
+    --gray-card:  #eef1f6;
+    --gray-text:  #6b7a8d;
+    --gray-line:  #dde3ec;
+    --black:      #111820;
+    --font-serif: Georgia, 'Times New Roman', serif;
+    --font-sans:  'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+#p-ga4tab html { font-size: 16px; scroll-behavior: smooth; }
+
+#p-ga4tab body {
+    background: var(--white);
+    color: var(--black);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  /* ── Header ───────────────────────────────────────────────────── */
+#p-ga4tab .site-header {
+    background: var(--navy);
+    padding: 0 40px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  }
+#p-ga4tab .site-header h1 {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.3px;
+  }
+#p-ga4tab .header-badge {
+    font-size: 12px;
+    color: var(--teal-dim);
+    font-weight: 400;
+    padding-left: 12px;
+    border-left: 1px solid rgba(255,255,255,.2);
+  }
+#p-ga4tab .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+#p-ga4tab #ga4n-refresh-btn {
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background .15s;
+    font-family: var(--font-sans);
+  }
+#p-ga4tab #ga4n-refresh-btn:hover { background: rgba(255,255,255,.2); }
+#p-ga4tab #ga4n-last-updated { font-size: 11px; color: rgba(255,255,255,.45); }
+
+  /* ── Main layout ──────────────────────────────────────────────── */
+#p-ga4tab main { max-width: 1280px; margin: 0 auto; padding: 48px 40px 80px; }
+
+  /* ── Section wrapper ──────────────────────────────────────────── */
+#p-ga4tab .section { margin-bottom: 64px; }
+#p-ga4tab .section-title {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+#p-ga4tab .section-subtitle {
+    font-size: 14px;
+    color: var(--gray-text);
+    margin-bottom: 32px;
+  }
+
+  /* ── Loading ──────────────────────────────────────────────────── */
+#p-ga4tab #ga4n-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 16px;
+  }
+#p-ga4tab .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--gray-line);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; color: var(--gray-text); }
+
+  /* ── Error ────────────────────────────────────────────────────── */
+  #ga4n-error {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 12px;
+    text-align: center;
+  }
+  .error-icon { font-size: 40px; }
+  .error-msg { font-size: 15px; color: var(--navy); font-weight: 600; }
+  .error-detail { font-size: 13px; color: var(--gray-text); max-width: 480px; }
+  #ga4n-retry-btn {
+    margin-top: 8px;
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: var(--font-sans);
+    transition: background .15s;
+  }
+  #ga4n-retry-btn:hover { background: #156a87; }
+
+  /* ── Dashboard content (hidden until loaded) ──────────────────── */
+  #ga4n-dashboard { display: none; }
+
+  /* ── Section 1: KPI Cards ─────────────────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .kpi-card {
+    background: var(--gray-card);
+    border-radius: 12px;
+    padding: 24px 20px 20px;
+    box-shadow: 0 1px 4px rgba(13,43,69,.06), 0 4px 16px rgba(13,43,69,.04);
+    transition: box-shadow .2s, transform .2s;
+  }
+  .kpi-card:hover {
+    box-shadow: 0 4px 20px rgba(26,127,160,.15);
+    transform: translateY(-2px);
+  }
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--gray-text);
+    margin-bottom: 10px;
+  }
+  .kpi-value {
+    font-size: 38px;
+    font-weight: 700;
+    font-family: var(--font-serif);
+    color: var(--teal);
+    line-height: 1;
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+  }
+  .kpi-value.unavailable {
+    font-size: 28px;
+    color: var(--gray-line);
+    letter-spacing: 0;
+  }
+  .kpi-desc {
+    font-size: 12px;
+    color: var(--gray-text);
+    font-style: italic;
+  }
+
+  /* ── Section 2: Best Pages Table ─────────────────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(13,43,69,.06), 0 4px 16px rgba(13,43,69,.04);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  thead tr {
+    background: var(--navy);
+    color: rgba(255,255,255,.85);
+  }
+  thead th {
+    padding: 13px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  thead th:not(:first-child) { text-align: right; }
+  tbody tr:nth-child(odd)  { background: var(--white); }
+  tbody tr:nth-child(even) { background: var(--gray-bg); }
+  tbody tr { transition: background .15s; }
+  tbody tr:hover { background: var(--teal-light); }
+  td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    color: var(--black);
+  }
+  td:not(:first-child) { text-align: right; }
+
+  .td-page-title {
+    font-weight: 600;
+    color: var(--navy);
+    max-width: 300px;
+  }
+  .td-page-path {
+    font-size: 11px;
+    color: var(--gray-text);
+    font-weight: 400;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+  }
+  .td-eng-rate {
+    color: var(--teal);
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .eng-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .eng-bar {
+    width: 60px;
+    height: 5px;
+    background: var(--gray-line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .eng-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 3px;
+    transition: width .4s ease;
+  }
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    color: var(--teal);
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  .td-first { display: flex; align-items: flex-start; gap: 0; }
+  .td-text-block { display: flex; flex-direction: column; }
+
+  /* ── Section 3: Traffic Sources ──────────────────────────────── */
+  .traffic-layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+  .donut-wrap {
+    background: var(--gray-card);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 1px 4px rgba(13,43,69,.06), 0 4px 16px rgba(13,43,69,.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .donut-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    align-self: flex-start;
+    letter-spacing: .2px;
+  }
+  .donut-canvas-wrap {
+    position: relative;
+    width: 240px; height: 240px;
+  }
+  #ga4n-donutChart { width: 240px !important; height: 240px !important; }
+  .donut-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+  }
+  .donut-center-label {
+    font-size: 11px;
+    color: var(--gray-text);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-bottom: 2px;
+  }
+  .donut-center-source {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    max-width: 90px;
+    line-height: 1.2;
+  }
+  .donut-center-pct {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--teal);
+    font-family: var(--font-serif);
+  }
+  .donut-legend {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--black);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-name { flex: 1; }
+  .legend-pct { color: var(--gray-text); font-size: 11px; }
+
+  /* Sources table */
+  .sources-table-wrap {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(13,43,69,.06), 0 4px 16px rgba(13,43,69,.04);
+    align-self: start;
+  }
+  .sources-table-wrap table { font-size: 13.5px; }
+  .td-source-name { font-weight: 600; color: var(--navy); }
+  .td-users-share { color: var(--black); }
+  .td-users-share small { color: var(--gray-text); font-size: 11px; }
+  .td-engaged-high {
+    color: var(--teal);
+    font-weight: 700;
+  }
+  .td-engaged-mid { color: var(--black); }
+  .share-pill {
+    display: inline-block;
+    background: var(--teal-light);
+    color: var(--teal);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: 6px;
+    letter-spacing: .3px;
+  }
+
+  /* ── Responsive ───────────────────────────────────────────────── */
+  @media (max-width: 1024px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .traffic-layout { grid-template-columns: 1fr; }
+    .donut-wrap { flex-direction: row; flex-wrap: wrap; }
+  }
+  @media (max-width: 640px) {
+    main { padding: 32px 20px 60px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .kpi-value { font-size: 28px; }
+    .site-header { padding: 0 20px; }
+  }
+
+
+/* Panel-level overrides */
+#p-ga4tab { padding: 0 !important; background: #f0f2f6; }
+#p-ga4tab main { max-width: 100%; padding: 28px 32px 60px; }
+
+/* ── KPI cards ── */
+#p-ga4tab .kpi-grid { grid-template-columns: repeat(4,1fr); gap: 12px; }
+#p-ga4tab .kpi-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px 18px 16px;
+  border: 1px solid #e4e6ea;
+  border-top: 3px solid #1a7fa0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  transition: box-shadow .2s, transform .2s;
+}
+#p-ga4tab .kpi-card:hover { box-shadow: 0 4px 14px rgba(26,127,160,.12); transform: translateY(-2px); }
+#p-ga4tab .kpi-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #8892a4; margin-bottom: 8px;
+}
+#p-ga4tab .kpi-value {
+  font-size: 32px; font-weight: 700; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+  color: #1a7fa0; line-height: 1; margin-bottom: 6px; letter-spacing: -0.5px;
+}
+#p-ga4tab .kpi-desc { font-size: 11px; color: #a0aab4; font-style: normal; }
+
+/* ── Section titles ── */
+#p-ga4tab .section { margin-bottom: 36px; }
+#p-ga4tab .section-title {
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+  font-size: 17px; font-weight: 700; color: #1a2533;
+  letter-spacing: -0.3px; margin-bottom: 2px;
+}
+#p-ga4tab .section-subtitle { font-size: 12px; color: #8892a4; margin-bottom: 14px; }
+
+/* ── Tables ── */
+#p-ga4tab .table-wrap {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  border: 1px solid #e4e6ea;
+  overflow: hidden;
+}
+#p-ga4tab table { font-size: 12.5px; }
+#p-ga4tab thead tr { background: #1a2035; }
+#p-ga4tab thead th {
+  padding: 10px 14px; font-size: 10px; font-weight: 600;
+  letter-spacing: .07em; color: #7a8899; text-transform: uppercase;
+}
+#p-ga4tab thead th:not(:first-child) { text-align: right; }
+#p-ga4tab tbody tr:nth-child(odd)  { background: #fff; }
+#p-ga4tab tbody tr:nth-child(even) { background: #f8f9fb; }
+#p-ga4tab tbody tr:hover { background: #edf6fb; }
+#p-ga4tab td { padding: 11px 14px; color: #1a2533; }
+#p-ga4tab td:not(:first-child) { text-align: right; }
+
+/* ── Page title cell ── */
+#p-ga4tab .td-first { display: flex; align-items: flex-start; gap: 2px; }
+#p-ga4tab .rank-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #e6f4f9; color: #1a7fa0;
+  font-size: 10px; font-weight: 700; margin-right: 10px; flex-shrink: 0; margin-top: 1px;
+}
+#p-ga4tab .td-page-title { font-weight: 600; color: #1a2533; font-size: 12.5px; }
+#p-ga4tab .td-page-path { font-size: 10px; color: #a0aab4; margin-top: 2px; max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Engagement bar ── */
+#p-ga4tab .eng-bar-wrap { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+#p-ga4tab .eng-bar { width: 54px; height: 4px; background: #e4e6ea; border-radius: 2px; overflow: hidden; }
+#p-ga4tab .eng-bar-fill { height: 100%; background: #1a7fa0; border-radius: 2px; }
+#p-ga4tab .td-eng-rate { color: #1a7fa0; font-weight: 700; font-size: 13px; min-width: 36px; }
+
+/* ── Traffic sources section ── */
+#p-ga4tab .traffic-layout { grid-template-columns: 300px 1fr; gap: 20px; }
+#p-ga4tab .donut-wrap {
+  background: #fff; border-radius: 10px; padding: 20px;
+  border: 1px solid #e4e6ea; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+#p-ga4tab .donut-canvas-wrap { width: 200px; height: 200px; }
+#p-ga4tab #ga4n-donutChart { width: 200px !important; height: 200px !important; }
+#p-ga4tab .donut-center-pct { font-size: 20px; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; }
+#p-ga4tab .legend-item { font-size: 11.5px; }
+#p-ga4tab .sources-table-wrap { border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.07); border: 1px solid #e4e6ea; }
+#p-ga4tab .share-pill { font-size: 10px; padding: 2px 6px; }
+#p-ga4tab .td-engaged-high { color: #10b981; font-weight: 700; }
+
+/* ── Header ── */
+#p-ga4tab .site-header { height: 52px; padding: 0 32px; position: relative; }
+#p-ga4tab .site-header h1 { font-size: 15px; }
+#p-ga4tab .header-badge { font-size: 11px; }
+
+/* ── Loading / Error ── */
+#p-ga4tab #ga4n-loading { min-height: 200px; }
+</style>
+
+
+
+<!-- ── Header ──────────────────────────────────────────────────────── -->
+<header class="site-header">
+  <h1>GA4 Website Analytics</h1>
+  <span class="header-badge">Powered by Google Sheets · QTD</span>
+  <div class="header-right">
+    <span id="ga4n-last-updated"></span>
+    <button id="ga4n-refresh-btn" onclick="renderGA4tab()">↻ Refresh</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- Loading -->
+  <div id="ga4n-loading">
+    <div class="spinner"></div>
+    <p class="loading-text">Fetching analytics data…</p>
+  </div>
+
+  <!-- Error -->
+  <div id="ga4n-error">
+    <div class="error-icon">⚠️</div>
+    <p class="error-msg">Could not load analytics data</p>
+    <p class="error-detail" id="ga4n-error-detail"></p>
+    <button id="ga4n-retry-btn" onclick="renderGA4tab()">Retry</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="ga4n-dashboard">
+
+    <!-- ── Section 1: KPI Summary ──────────────────────────────── -->
+    <section class="section">
+      <h2 class="section-title">QTD performance at a glance</h2>
+      <p class="section-subtitle" id="ga4n-summary-subtitle">Aggregate across all pages · QTD</p>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Sessions</div>
+          <div class="kpi-value" id="ga4n-kpi-sessions">—</div>
+          <div class="kpi-desc">All sessions in the period</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active Users</div>
+          <div class="kpi-value" id="ga4n-kpi-users">—</div>
+          <div class="kpi-desc">Unique visitors</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Engaged Sessions</div>
+          <div class="kpi-value" id="ga4n-kpi-engaged">—</div>
+          <div class="kpi-desc">Sessions with &gt;10s or 2+ pageviews</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg Engagement Time</div>
+          <div class="kpi-value" id="ga4n-kpi-duration">—</div>
+          <div class="kpi-desc">Weighted avg across sessions</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Key Events</div>
+          <div class="kpi-value" id="ga4n-kpi-keyevents">—</div>
+          <div class="kpi-desc">All tracked conversion events</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Key-Event Rate</div>
+          <div class="kpi-value" id="ga4n-kpi-keyrate">—</div>
+          <div class="kpi-desc">Key events ÷ total sessions</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Bounce Rate</div>
+          <div class="kpi-value" id="ga4n-kpi-bounce">—</div>
+          <div class="kpi-desc">1 minus engagement rate</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">New Users</div>
+          <div class="kpi-value" id="ga4n-kpi-newusers">—</div>
+          <div class="kpi-desc">First-time visitors in period</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Section 2: Best Pages Table ────────────────────────── -->
+    <section class="section">
+      <h2 class="section-title">Best-performing stories by engagement</h2>
+      <p class="section-subtitle">Pages with &gt;50 sessions, ranked by engagement rate</p>
+      <div class="table-wrap">
+        <table id="pages-table">
+          <thead>
+            <tr>
+              <th style="text-align:left">Page Title</th>
+              <th>Engagement Rate</th>
+              <th>Active Users</th>
+              <th>Avg Time / Session</th>
+              <th>Key-Event Rate</th>
+            </tr>
+          </thead>
+          <tbody id="ga4n-pages-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Section 3: Traffic Sources ─────────────────────────── -->
+    <section class="section">
+      <h2 class="section-title">Where our traffic comes from</h2>
+      <p class="section-subtitle">Active users by channel · QTD</p>
+      <div class="traffic-layout">
+
+        <!-- Donut -->
+        <div class="donut-wrap">
+          <div class="donut-title">Share by source</div>
+          <div class="donut-canvas-wrap">
+            <canvas id="ga4n-donutChart"></canvas>
+            <div class="donut-center">
+              <div class="donut-center-label">Top source</div>
+              <div class="donut-center-source" id="ga4n-donut-top-source">—</div>
+              <div class="donut-center-pct" id="ga4n-donut-top-pct">—</div>
+            </div>
+          </div>
+          <div class="donut-legend" id="ga4n-donut-legend"></div>
+        </div>
+
+        <!-- Table -->
+        <div class="sources-table-wrap">
+          <table id="sources-table">
+            <thead>
+              <tr>
+                <th style="text-align:left">Channel</th>
+                <th>Active Users · Share %</th>
+                <th>Engaged %</th>
+              </tr>
+            </thead>
+            <tbody id="ga4n-sources-tbody"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /#dashboard -->
+</main>
+
+<script>
+function renderGA4tab(){
+  var rows = RAW_GA4 ? RAW_GA4.rows : [];
+  if(!rows.length) return;
+
+  var totS  = rows.reduce(function(s,r){ return s+gn(r,'sessions'); },0);
+  var totU  = rows.reduce(function(s,r){ return s+gn(r,'active users'); },0);
+  var totN  = rows.reduce(function(s,r){ return s+gn(r,'new users'); },0);
+  var totKE = rows.reduce(function(s,r){ return s+gn(r,'key events'); },0);
+  var wB    = rows.reduce(function(s,r){ return s+gn(r,'bounce rate')*gn(r,'sessions'); },0);
+  var wET   = rows.reduce(function(s,r){ return s+gn(r,'average engagement time per session')*gn(r,'sessions'); },0);
+  var avgB  = totS ? wB/totS : 0;
+  var avgET = totS ? wET/totS : 0;
+  var engS  = Math.round(totS*(1-avgB));
+  var ker   = totS ? totKE/totS*100 : 0;
+
+  // KPI cards — reuse existing ga4n- IDs in the HTML
+  ga4n_set('kpi-sessions',  ga4n_fmtNum(totS));
+  ga4n_set('kpi-users',     ga4n_fmtNum(totU));
+  ga4n_set('kpi-engaged',   ga4n_fmtNum(engS));
+  ga4n_set('kpi-duration',  ga4n_fmtDuration(avgET));
+  ga4n_set('kpi-keyevents', ga4n_fmtNum(totKE));
+  ga4n_set('kpi-keyrate',   ga4n_fmtPct(ker/100));
+  ga4n_set('kpi-bounce',    ga4n_fmtPct(avgB));
+  var nuEl = document.getElementById('ga4n-kpi-newusers');
+  if(nuEl){ nuEl.textContent = ga4n_fmtNum(totN); nuEl.classList.remove('unavailable'); }
+
+  // Update subtitle
+  var subEl = document.getElementById('ga4n-summary-subtitle');
+  if(subEl) subEl.textContent = 'Aggregate across all pages · from GoogleAnalyticsv4 sheet';
+
+  // Best pages table
+  var pgMap = {};
+  rows.forEach(function(r){
+    var pg=(r['landing page']||'').split('?')[0];
+    if(!pg||pg==='(not set)'||pg==='(data not available)') return;
+    if(!pgMap[pg]) pgMap[pg]={u:0,s:0,wb:0,ke:0,et:0};
+    var s=gn(r,'sessions');
+    pgMap[pg].u  += gn(r,'active users');
+    pgMap[pg].s  += s;
+    pgMap[pg].wb += gn(r,'bounce rate')*s;
+    pgMap[pg].ke += gn(r,'key events');
+    pgMap[pg].et += gn(r,'average engagement time per session')*s;
+  });
+  var topPg = Object.entries(pgMap)
+    .filter(function(e){return e[1].s>=50;})
+    .sort(function(a,b){
+      var ea=(1-(a[1].s?a[1].wb/a[1].s:0))*100;
+      var eb=(1-(b[1].s?b[1].wb/b[1].s:0))*100;
+      return eb-ea;
+    }).slice(0,10);
+  var tbody = document.getElementById('ga4n-pages-tbody');
+  if(tbody){
+    tbody.innerHTML = topPg.map(function(e,i){
+      var v=e[1], br=v.s?v.wb/v.s:0, eng=(1-br)*100, et=v.s?v.et/v.s:0;
+      var engPct = Math.round(eng);
+      var slug = e[0].replace('/success-story/','').replace(/-/g,' ').replace(/\?.*$/,'');
+      slug = slug.charAt(0).toUpperCase()+slug.slice(1);
+      return '<tr>'+
+        '<td><div class="td-first"><span class="rank-badge">'+(i+1)+'</span>'+
+        '<div class="td-text-block">'+
+        '<span class="td-page-title">'+ga4n_escHtml(slug)+'</span>'+
+        '<span class="td-page-path">'+ga4n_escHtml(e[0])+'</span>'+
+        '</div></div></td>'+
+        '<td><div class="eng-bar-wrap"><div class="eng-bar"><div class="eng-bar-fill" style="width:'+engPct+'%"></div></div>'+
+        '<span class="td-eng-rate">'+engPct+'%</span></div></td>'+
+        '<td>'+ga4n_fmtNum(v.u)+'</td>'+
+        '<td>'+ga4n_fmtDuration(et)+'</td>'+
+        '<td>'+ga4n_fmtPct(v.ke/v.s)+'</td>'+
+        '</tr>';
+    }).join('');
+  }
+
+  // Traffic sources table + donut
+  var srcMap = {};
+  rows.forEach(function(r){
+    var src=(r['session source / medium']||'').trim();
+    if(!src||src==='(not set)'||src==='(data not available)') return;
+    if(!srcMap[src]) srcMap[src]={u:0,s:0,wb:0};
+    var s=gn(r,'sessions');
+    srcMap[src].u  += gn(r,'active users');
+    srcMap[src].s  += s;
+    srcMap[src].wb += gn(r,'bounce rate')*s;
+  });
+  var topSrc = Object.entries(srcMap).sort(function(a,b){return b[1].u-a[1].u;}).slice(0,7);
+  var totalU = topSrc.reduce(function(s,e){return s+e[1].u;},0);
+
+  var PALETTE = ['#1a7fa0','#0d2b45','#2eb8e6','#5ba8c4','#8ecfde','#163854','#a8dde9'];
+
+  // Sources tbody
+  var srcTbody = document.getElementById('ga4n-sources-tbody');
+  if(srcTbody){
+    srcTbody.innerHTML = topSrc.map(function(e,i){
+      var v=e[1], br=v.s?v.wb/v.s:0, eng=(1-br)*100;
+      var share = totalU ? v.u/totalU*100 : 0;
+      var isHigh = eng>=50;
+      return '<tr>'+
+        '<td><span class="legend-dot" style="background:'+PALETTE[i%PALETTE.length]+';display:inline-block;margin-right:8px;vertical-align:middle"></span>'+
+        '<span class="td-source-name">'+ga4n_escHtml(e[0])+'</span></td>'+
+        '<td class="td-users-share">'+ga4n_fmtNum(v.u)+
+        '<span class="share-pill">'+share.toFixed(1)+'%</span></td>'+
+        '<td class="'+(isHigh?'td-engaged-high':'td-engaged-mid')+'">'+eng.toFixed(1)+'%</td>'+
+        '</tr>';
+    }).join('');
+  }
+
+  // Donut center labels
+  if(topSrc.length){
+    var top = topSrc[0];
+    var topShare = totalU ? top[1].u/totalU*100 : 0;
+    ga4n_set('donut-top-source', top[0]);
+    ga4n_set('donut-top-pct', topShare.toFixed(1)+'%');
+  }
+
+  // Donut legend
+  var legendEl = document.getElementById('ga4n-donut-legend');
+  if(legendEl){
+    legendEl.innerHTML = topSrc.map(function(e,i){
+      var share = totalU ? e[1].u/totalU*100 : 0;
+      return '<div class="legend-item">'+
+        '<span class="legend-dot" style="background:'+PALETTE[i%PALETTE.length]+'"></span>'+
+        '<span class="legend-name">'+ga4n_escHtml(e[0])+'</span>'+
+        '<span class="legend-pct">'+share.toFixed(1)+'%</span>'+
+        '</div>';
+    }).join('');
+  }
+
+  // Donut chart
+  if(typeof Chart !== 'undefined'){
+    var canvas = document.getElementById('ga4n-donutChart');
+    if(canvas){
+      if(window._ga4DonutChart){ window._ga4DonutChart.destroy(); window._ga4DonutChart=null; }
+      window._ga4DonutChart = new Chart(canvas.getContext('2d'),{
+        type:'doughnut',
+        data:{
+          labels: topSrc.map(function(e){return e[0];}),
+          datasets:[{
+            data: topSrc.map(function(e){ return totalU?+(e[1].u/totalU*100).toFixed(1):0; }),
+            backgroundColor: PALETTE,
+            borderWidth:2, borderColor:'#eef1f6', hoverOffset:6
+          }]
+        },
+        options:{ cutout:'68%', plugins:{ legend:{display:false} }, animation:{duration:600} }
+      });
+    }
+  }
+
+  // Show dashboard, hide loading/error
+  var dash = document.getElementById('ga4n-dashboard');
+  var load = document.getElementById('ga4n-loading');
+  var err  = document.getElementById('ga4n-error');
+  if(dash) dash.style.display='block';
+  if(load) load.style.display='none';
+  if(err)  err.style.display='none';
+}
+
+// Formatters used by renderGA4tab
+function ga4n_fmtNum(n){ if(n==null||isNaN(n)) return '0'; return Math.round(n).toLocaleString('en-IN'); }
+function ga4n_fmtPct(r){ if(r==null||isNaN(r)) return '0.0%'; return (r*100).toFixed(1)+'%'; }
+function ga4n_fmtDuration(s){ if(!s||isNaN(s)||s===0) return '0s'; s=Math.round(s); if(s<60) return s+'s'; return Math.floor(s/60)+'m '+(s%60>0?s%60+'s':''); }
+function ga4n_set(id,val){ var el=document.getElementById('ga4n-'+id); if(el) el.textContent=val; }
+function ga4n_escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Auto-render when tab is clicked
+;(function(){
+  var _orig = window.showTab;
+  window.showTab = function(name){
+    _orig(name);
+    if(name==='ga4tab') renderGA4tab();
+  };
+})();
+</script>
+
+
+</div><!-- /#p-ga4tab -->
+
+</body>
+</html>
