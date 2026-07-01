@@ -213,12 +213,12 @@ td:not(:first-child){text-align:right}
     </div>
     <div class="win-row win-clg">
       <div class="wc"><strong><span class="dot" style="background:#f59e0b"></span>CLG Campaigns</strong></div>
-      <div class="wc"><div class="wpct"    id="wr-clg-ms">—</div><div class="wsub">of MQLs progress to SQL</div></div>
+      <div class="wc"><div class="wpct"    id="wr-clg-ms">—</div><div class="wsub" id="wr-clg-ms-lbl">of MQLs progress to SQL</div></div>
       <div class="wc"><div class="wpct tl" id="wr-clg-sp">—</div><div class="wsub">of SQLs become pipeline</div></div>
     </div>
     <div class="win-row win-all">
       <div class="wc"><strong><span class="dot" style="background:#94a3b8"></span>Overall (All Campaigns)</strong></div>
-      <div class="wc"><div class="wpct"    id="wr-all-ms">—</div><div class="wsub">of MQLs progress to SQL</div></div>
+      <div class="wc"><div class="wpct"    id="wr-all-ms">—</div><div class="wsub" id="wr-all-ms-lbl">of MQLs progress to SQL</div></div>
       <div class="wc"><div class="wpct tl" id="wr-all-sp">—</div><div class="wsub">of SQLs become pipeline</div></div>
     </div>
   </div>
@@ -298,6 +298,7 @@ td:not(:first-child){text-align:right}
     <div class="kpi tl"><div class="kpi-lbl">New Users</div>       <div class="kpi-val" id="ga-n">—</div><div class="kpi-sub">First-time visitors</div></div>
     <div class="kpi am"><div class="kpi-lbl">Bounce Rate</div>     <div class="kpi-val" id="ga-br">—</div><div class="kpi-sub">1 minus engagement rate</div></div>
     <div class="kpi pu"><div class="kpi-lbl">Key Events</div>      <div class="kpi-val" id="ga-ke">—</div><div class="kpi-sub">Conversion events</div></div>
+    <div class="kpi tl"><div class="kpi-lbl">Avg Time on Page</div><div class="kpi-val" id="ga-et">—</div><div class="kpi-sub">Avg engagement time / session</div></div>
   </div>
 
   <!-- Traffic & Conversion by Landing Page URL -->
@@ -1188,13 +1189,16 @@ function renderGA4(ga4){
   var totN  = rows.reduce(function(s,r){ return s+gn(r,'new users'); },0);
   var totKE = rows.reduce(function(s,r){ return s+gn(r,'key events'); },0);
   var wB    = rows.reduce(function(s,r){ return s+gn(r,'bounce rate')*gn(r,'sessions'); },0);
-  var avgB  = totS ? wB/totS : 0;
+  var wET   = rows.reduce(function(s,r){ return s+gn(r,'average engagement time per session')*gn(r,'sessions'); },0);
+  var avgB  = totS ? wB/totS   : 0;
+  var avgET = totS ? wET/totS  : 0;
 
   set('ga-s',  fN(totS));
   set('ga-u',  fN(totU));
   set('ga-n',  fN(totN));
   set('ga-br', fP(avgB*100));
   set('ga-ke', fN(totKE));
+  set('ga-et', fD(avgET));
 
   // ── Traffic by Session source / medium ───────────────────────
   var srcMap = {};
@@ -1602,6 +1606,11 @@ function reRenderAll(days, fromDate, toDate){
   set('wr-clg-sp', wr.clg_sp.toFixed(1)+'%');
   set('wr-all-ms', wr.all_ms.toFixed(1)+'%');
   set('wr-all-sp', wr.all_sp.toFixed(1)+'%');
+  // Update labels to reflect actual denominator used (MQL or IQL fallback)
+  var clgLbl = document.getElementById('wr-clg-ms-lbl');
+  var allLbl = document.getElementById('wr-all-ms-lbl');
+  if(clgLbl) clgLbl.textContent = (leads.byChannel.TOTAL.mql>0) ? 'of MQLs progress to SQL' : 'of IQLs progress to SQL (no MQLs this period)';
+  if(allLbl) allLbl.textContent = (leads.byChannel.TOTAL.mql>0) ? 'of MQLs progress to SQL' : 'of IQLs progress to SQL (no MQLs this period)';
 
   // Update Paid Media tab
   renderPaid(RAW_GADS, RAW_META, RAW_LI, leads);
@@ -1745,6 +1754,11 @@ Promise.all([
   set('wr-clg-sp', wr.clg_sp.toFixed(1)+'%');
   set('wr-all-ms', wr.all_ms.toFixed(1)+'%');
   set('wr-all-sp', wr.all_sp.toFixed(1)+'%');
+  // Update labels to reflect actual denominator used (MQL or IQL fallback)
+  var clgLbl = document.getElementById('wr-clg-ms-lbl');
+  var allLbl = document.getElementById('wr-all-ms-lbl');
+  if(clgLbl) clgLbl.textContent = (leads.byChannel.TOTAL.mql>0) ? 'of MQLs progress to SQL' : 'of IQLs progress to SQL (no MQLs this period)';
+  if(allLbl) allLbl.textContent = (leads.byChannel.TOTAL.mql>0) ? 'of MQLs progress to SQL' : 'of IQLs progress to SQL (no MQLs this period)';
   renderPaid(RAW_GADS, RAW_META, RAW_LI, leads);
   renderGA4(ga4Tab);
   renderWhatsApp(waRaw);
@@ -2122,8 +2136,11 @@ function fetchEarnedMedia(){
         '</div></div>';
     });
     if(listEl)    listEl.innerHTML    = html;
+    // Count unique outlets for Publications Distributed
+    var uniqueOutlets = {};
+    fallback.forEach(function(a){ uniqueOutlets[a.publication]=1; });
     if(prEl)      prEl.textContent    = prCount;
-    if(pubEl)     pubEl.textContent   = fallback.length;
+    if(pubEl)     pubEl.textContent   = Object.keys(uniqueOutlets).length;
     if(majorEl)   majorEl.textContent = majorCount;
     if(refreshEl) refreshEl.innerHTML =
       'ℹ Source: Google News search for "Netcore Cloud" · Last verified: Jul 1, 2026';
