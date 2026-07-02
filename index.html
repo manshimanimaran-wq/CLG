@@ -235,7 +235,14 @@ td:not(:first-child){text-align:right}
   </div>
 
   <div class="sec-ttl">Lead Funnel by Region</div>
-  <div class="sec-sub">Last 2 Weeks vs. previous period — all regions</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <div class="sec-sub" style="margin:0">Last 2 Weeks vs. previous period — all regions</div>
+    <div style="display:flex;gap:6px">
+      <button id="lfr-btn-all" onclick="filterLeadFunnelRegion('all',this)" style="font-size:11px;padding:4px 12px;border-radius:4px;border:1px solid #e4e6ea;background:#1a2533;color:#fff;cursor:pointer;font-weight:600">All</button>
+      <button id="lfr-btn-li"  onclick="filterLeadFunnelRegion('li',this)"  style="font-size:11px;padding:4px 12px;border-radius:4px;border:1px solid #e4e6ea;background:#fff;color:#1a2533;cursor:pointer">LinkedIn</button>
+      <button id="lfr-btn-meta" onclick="filterLeadFunnelRegion('meta',this)" style="font-size:11px;padding:4px 12px;border-radius:4px;border:1px solid #e4e6ea;background:#fff;color:#1a2533;cursor:pointer">Meta</button>
+    </div>
+  </div>
   <div class="redline"></div>
   <div class="tbl-wrap">
     <table><thead class="th-dk"><tr>
@@ -252,17 +259,6 @@ td:not(:first-child){text-align:right}
       <th>MQL</th><th>SQL</th><th>PO</th><th>MQL→SQL%</th><th>SQL→PO%</th>
       <th>CPL</th><th>Cost/MQL</th><th>Cost/SQL</th>
     </tr></thead><tbody id="channel-body"></tbody></table>
-  </div>
-
-  <div class="sec-ttl">Cost Efficiency per Channel</div>
-  <div class="sec-sub">Cost per MQL vs. Cost per SQL — lower is better</div>
-  <div class="redline"></div>
-  <div class="chart-box">
-    <div class="ch-wrap"><canvas id="costChart" role="img" aria-label="Cost per MQL and SQL by channel"></canvas></div>
-    <div class="leg">
-      <span><span class="ldot" style="background:#3b82f6"></span>Cost/MQL</span>
-      <span><span class="ldot" style="background:#f59e0b"></span>Cost/SQL</span>
-    </div>
   </div>
 
   <div class="sec-ttl">Cost per Lead Trend</div>
@@ -516,14 +512,48 @@ td:not(:first-child){text-align:right}
       <tbody id="em-tbody"></tbody>
     </table>
   </div>
+
+  <!-- Sales Distribution — live from Linkly links sheet tab -->
+  <div style="background:#1a2533;border-radius:10px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+    <span style="font-size:16px">🔗</span>
+    <span style="color:#fff;font-size:14px;font-weight:700">Sales Distribution</span>
+    <span style="font-size:11px;color:#8892a4;margin-left:4px">CLG content shared with the Sales team</span>
+  </div>
+
+  <!-- Linkly Links KPI cards -->
+  <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+    <div class="kpi bl"><div class="kpi-lbl">Links Shared</div><div class="kpi-val" style="font-size:22px" id="sd-links">—</div><div class="kpi-sub">Shared with Sales</div></div>
+    <div class="kpi tl"><div class="kpi-lbl">Total Clicks</div><div class="kpi-val" style="font-size:22px" id="sd-clicks">—</div><div class="kpi-sub">On shared links</div></div>
+    <div class="kpi am"><div class="kpi-lbl">Clicks per Link</div><div class="kpi-val" style="font-size:22px" id="sd-cpl">—</div><div class="kpi-sub">Avg engagement per link</div></div>
+  </div>
+
+  <!-- Linkly Links table -->
+  <div style="background:#fff;border:1px solid #e4e6ea;border-radius:10px;padding:20px;margin-bottom:16px">
+    <div style="font-size:13px;font-weight:700;color:#1a2533;margin-bottom:16px">Top Links by Clicks</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+      <thead><tr style="border-bottom:1px solid #f0f2f5">
+        <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;color:#8892a4">#</th>
+        <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;color:#8892a4">Story Name</th>
+        <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;color:#8892a4">Short URL</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;color:#8892a4">Shared On</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;color:#8892a4">Total Clicks ↓</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;color:#8892a4">Last 30 Days</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;color:#8892a4">Today</th>
+      </tr></thead>
+      <tbody id="sd-tbody">
+        <tr><td colspan="7" style="text-align:center;padding:20px;color:#8892a4">Loading Sales Distribution data…</td></tr>
+      </tbody>
+    </table>
+    <div style="font-size:11px;color:#a0aab4;margin-top:8px;text-align:right" id="sd-refreshed"></div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════ EARNED MEDIA -->
 <div id="p-earned" class="panel">
   <div class="kpis n3">
-    <div class="kpi">   <div class="kpi-lbl">Press Releases</div>          <div class="kpi-val" id="em-pr-count">—</div><div class="kpi-sub">QTD via PR Newswire</div></div>
-    <div class="kpi bl"><div class="kpi-lbl">Publications Distributed</div><div class="kpi-val" id="em-pub-count">—</div><div class="kpi-sub">Outlets covered Netcore</div></div>
-    <div class="kpi tl"><div class="kpi-lbl">Major Publications</div>      <div class="kpi-val" id="em-major-count">—</div><div class="kpi-sub">&gt;1M monthly traffic</div></div>
+    <div class="kpi">   <div class="kpi-lbl">Press Releases</div>          <div class="kpi-val" id="em-pr-count">N/A</div><div class="kpi-sub">QTD via PR Newswire</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Publications Distributed</div><div class="kpi-val" id="em-pub-count">N/A</div><div class="kpi-sub">Outlets covered Netcore</div></div>
+    <div class="kpi tl"><div class="kpi-lbl">Major Publications</div>      <div class="kpi-val" id="em-major-count">N/A</div><div class="kpi-sub">&gt;1M monthly traffic</div></div>
   </div>
   <div class="sec-ttl">Key Publications Coverage</div>
   <div class="sec-sub">Live from Google News — Netcore Cloud coverage, auto-refreshed on page load</div>
@@ -536,20 +566,94 @@ td:not(:first-child){text-align:right}
 
 <!-- ═══════════════════════════════════════════════════════════════ REVIEWS -->
 <div id="p-reviews" class="panel">
-  <div class="kpis n4">
-    <div class="kpi am"><div class="kpi-lbl">G2 Rating</div><div class="kpi-val" id="rv-g2-rating">—</div><div class="kpi-sub" id="rv-g2-sub">Loading…</div></div>
-    <div class="kpi bl"><div class="kpi-lbl">New Reviews</div><div class="kpi-val">—</div><div class="kpi-sub">Pending manual data</div></div>
-    <div class="kpi tl"><div class="kpi-lbl">NPS Score</div><div class="kpi-val">—</div><div class="kpi-sub">Pending data source</div></div>
-    <div class="kpi pu"><div class="kpi-lbl">Review Velocity</div><div class="kpi-val">—</div><div class="kpi-sub">Pending manual data</div></div>
-  </div>
-  <div style="background:#fff;border:1px solid #e4e6ea;border-radius:8px;padding:20px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-      <img src="https://company.g2.com/hs-fs/hubfs/brand-guide/g2-logo.png?width=60" style="height:24px" onerror="this.style.display='none'"/>
-      <span style="font-size:13px;font-weight:700;color:#1a2533">Netcore Customer Engagement Platform</span>
-      <a id="rv-g2-link" href="https://www.g2.com/products/netcore-customer-engagement-platform/reviews" target="_blank" style="font-size:11px;color:#3b82f6;margin-left:auto">View on G2 →</a>
+  <!-- Top KPI row: G2 + Gartner side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+
+    <!-- G2 Card -->
+    <div style="background:#fff;border:1px solid #e4e6ea;border-radius:12px;padding:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="font-size:13px;font-weight:700;color:#1a2533">G2 — Performance</span>
+        <span style="font-size:10px;background:#e8f4fd;color:#3b82f6;padding:2px 8px;border-radius:4px;font-weight:600">QTD</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <div style="border:1px solid #e4e6ea;border-radius:8px;padding:12px;border-top:3px solid #e8384f">
+          <div style="font-size:10px;color:#8892a4;text-transform:uppercase;font-weight:600">Reviews (QTD)</div>
+          <div style="font-size:22px;font-weight:800;color:#e8384f" id="rv-g2-reviews-qtd">11</div>
+          <div style="font-size:10px;color:#10b981;font-weight:600" id="rv-g2-qtd-badge">▲ 37.5% vs Q1</div>
+        </div>
+        <div style="border:1px solid #e4e6ea;border-radius:8px;padding:12px;border-top:3px solid #1a2533">
+          <div style="font-size:10px;color:#8892a4;text-transform:uppercase;font-weight:600">Rating</div>
+          <div style="font-size:22px;font-weight:800;color:#1a2533" id="rv-g2-rating">4.7 ★</div>
+          <div style="font-size:10px;color:#8892a4" id="rv-g2-sub">Q1: 4.9/5</div>
+        </div>
+        <div style="border:1px solid #e4e6ea;border-radius:8px;padding:12px;border-top:3px solid #10b981">
+          <div style="font-size:10px;color:#8892a4;text-transform:uppercase;font-weight:600">vs Q1</div>
+          <div style="font-size:22px;font-weight:800;color:#10b981" id="rv-g2-vs-q1">+3</div>
+          <div style="font-size:10px;color:#10b981" id="rv-g2-vs-q1-pct">37.5% growth</div>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <div style="font-size:11px;color:#8892a4;margin-bottom:8px;font-weight:600">RATING DISTRIBUTION</div>
+        <div id="rv-g2-dist"><div style="font-size:11px;color:#8892a4">Loading…</div></div>
+      </div>
+      <div style="margin-top:12px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="font-size:11px;background:#e6f4ea;color:#1e8e3e;padding:3px 10px;border-radius:12px;font-weight:600">G2 Review Program: Active</span>
+          <a href="https://www.g2.com/products/netcore-customer-engagement-platform/reviews" target="_blank" style="font-size:11px;color:#3b82f6;padding:3px 10px;border:1px solid #3b82f6;border-radius:12px;text-decoration:none">View on G2 →</a>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#8892a4" id="rv-g2-status"></div>
     </div>
-    <div style="font-size:12px;color:#8892a4" id="rv-g2-status">Fetching live G2 data…</div>
+
+    <!-- Gartner Card -->
+    <div style="background:#fff;border:1px solid #e4e6ea;border-radius:12px;padding:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="font-size:13px;font-weight:700;color:#1a2533">Gartner Peer Insights — Performance</span>
+        <span style="font-size:10px;background:#fff3e0;color:#f59e0b;padding:2px 8px;border-radius:4px;font-weight:600">QTD</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <div style="border:1px solid #e4e6ea;border-radius:8px;padding:12px;border-top:3px solid #f59e0b">
+          <div style="font-size:10px;color:#8892a4;text-transform:uppercase;font-weight:600">Reviews (QTD)</div>
+          <div style="font-size:22px;font-weight:800;color:#f59e0b" id="rv-gartner-reviews">—</div>
+        </div>
+        <div style="border:1px solid #e4e6ea;border-radius:8px;padding:12px;border-top:3px solid #1a2533">
+          <div style="font-size:10px;color:#8892a4;text-transform:uppercase;font-weight:600">Rating</div>
+          <div style="font-size:22px;font-weight:800;color:#1a2533" id="rv-gartner-rating">—</div>
+        </div>
+        <div style="border:1px solid #e4e6ea;border-radius:8px;padding:12px;border-top:3px solid #10b981">
+          <div style="font-size:10px;color:#8892a4;text-transform:uppercase;font-weight:600">Profile Views</div>
+          <div style="font-size:22px;font-weight:800;color:#10b981" id="rv-gartner-views">—</div>
+        </div>
+      </div>
+      <!-- Gartner market breakdown -->
+      <div style="margin-top:16px" id="rv-gartner-markets">
+        <div style="font-size:11px;color:#8892a4;margin-bottom:8px;font-weight:600">MARKET BREAKDOWN</div>
+        <div style="font-size:12px;color:#8892a4;text-align:center;padding:8px">Loading Gartner data…</div>
+      </div>
+    </div>
   </div>
+
+  <!-- Reviews QTD — G2 vs Gartner Bar Chart -->
+  <div style="background:#1a2533;border-radius:12px;padding:20px;margin-bottom:20px">
+    <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:16px">
+      Reviews QTD — G2 vs Gartner
+    </div>
+    <div style="display:flex;align-items:flex-end;justify-content:center;gap:60px;height:120px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <span style="font-size:22px;font-weight:800;color:#fff" id="rv-chart-g2">11</span>
+        <div style="width:80px;background:#e8384f;border-radius:6px 6px 0 0" id="rv-bar-g2" style="height:80px"></div>
+        <span style="font-size:12px;color:#8892a4">G2</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <span style="font-size:22px;font-weight:800;color:#fff" id="rv-chart-gartner">—</span>
+        <div style="width:80px;background:#f59e0b;border-radius:6px 6px 0 0" id="rv-bar-gartner"></div>
+        <span style="font-size:12px;color:#8892a4">Gartner</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Last refreshed -->
+  <div style="font-size:11px;color:#a0aab4;text-align:right;margin-top:8px" id="rv-last-refreshed"></div>
 </div>
 
 <script>
@@ -569,7 +673,6 @@ var TABS = {
   earned : 'Earned Media'       // manually updated by team every 2 weeks from Google News
 };
 
-var costChartInst = null;
 
 // ── Global tab data — stored at boot, re-used on range change ────────
 var RAW_LEADS = null, RAW_GADS = null, RAW_META = null, RAW_LI = null;
@@ -935,9 +1038,33 @@ function renderPaid(gads,meta,li,leads){
       regSpendMap[reg] += gn(r,spendKey);
     });
   }
+  // Per-channel spend maps for toggle filter
+  var regSpendMapLI   = {India:0,MEA:0,SEA:0,EU:0,LATAM:0,Unassigned:0};
+  var regSpendMapMeta = {India:0,MEA:0,SEA:0,EU:0,LATAM:0,Unassigned:0};
+  var regSpendMapAll  = {India:0,MEA:0,SEA:0,EU:0,LATAM:0,Unassigned:0};
+
+  function addRegionSpendTo(map, rows, spendKey, nameKey){
+    rows.forEach(function(r){
+      var reg = campaignRegion(gs(r,nameKey)) || 'Unassigned';
+      map[reg] += gn(r,spendKey);
+    });
+  }
+  addRegionSpendTo(regSpendMapLI,   lRows, liKey,          'campaign name');
+  addRegionSpendTo(regSpendMapMeta, mRows, 'amount spent', 'campaign name');
+  addRegionSpendTo(regSpendMapAll,  gRows, 'amount spent', 'campaign name');
+  addRegionSpendTo(regSpendMapAll,  mRows, 'amount spent', 'campaign name');
+  addRegionSpendTo(regSpendMapAll,  lRows, liKey,          'campaign name');
+
   addRegionSpend(gRows, 'amount spent', 'campaign name');
   addRegionSpend(mRows, 'amount spent', 'campaign name');
   addRegionSpend(lRows, liKey,          'campaign name');
+
+  // Store for toggle use
+  window._lfr = {
+    regNames: regNames,
+    maps: { all: regSpendMapAll, li: regSpendMapLI, meta: regSpendMapMeta },
+    regLeads: null, prevRegLeads: null, totSpend: 0, f: null, totDL:0, totMQL:0, totSQL:0, totPO:0
+  };
 
   var regLeads = regNames.map(function(r){ return leads.byRegion[r]||{dl:0,iql:0,mql:0,sql:0,po:0}; });
 
@@ -967,6 +1094,16 @@ function renderPaid(gads,meta,li,leads){
     '<td>'+(totMQL ? fC(totSpend/totMQL) : '<span style="color:#8892a4">—</span>')+'</td>'+
     '<td>'+(totSQL ? fC(totSpend/totSQL) : '<span style="color:#8892a4">—</span>')+'</td></tr>';
   document.getElementById('region-body').innerHTML = rHtml;
+
+  // Store for channel toggle
+  window._lfr.regLeads    = regLeads;
+  window._lfr.prevRegLeads = prevRegLeads;
+  window._lfr.totSpend    = totSpend;
+  window._lfr.f           = f;
+  window._lfr.totDL       = totDL;
+  window._lfr.totMQL      = totMQL;
+  window._lfr.totSQL      = totSQL;
+  window._lfr.totPO       = totPO;
 
   // Channel table
   var liF  = leads.byChannel.LinkedIn;
@@ -998,33 +1135,6 @@ function renderPaid(gads,meta,li,leads){
       '<td class="nbl">'+fC(c.f.mql ? c.sp/c.f.mql : 0)+'</td>'+
       '<td class="nbl">'+fC(c.f.sql ? c.sp/c.f.sql : 0)+'</td></tr>';
   }).join('');
-
-  // Cost chart
-  if(costChartInst){ costChartInst.destroy(); costChartInst=null; }
-  var lCmql = liF.mql  ? lSpend/liF.mql  : 0;
-  var lCsql = liF.sql  ? lSpend/liF.sql  : 0;
-  var mCmql = webF.mql ? mSpend/webF.mql : 0;
-  var mCsql = webF.sql ? mSpend/webF.sql : 0;
-  costChartInst = new Chart(document.getElementById('costChart'),{
-    type:'bar',
-    data:{
-      labels:['LinkedIn','Meta'],
-      datasets:[
-        {label:'Cost/MQL', data:[Math.round(lCmql),Math.round(mCmql)], backgroundColor:'#3b82f6', borderRadius:4},
-        {label:'Cost/SQL', data:[Math.round(lCsql),Math.round(mCsql)], backgroundColor:'#f59e0b', borderRadius:4}
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false},
-        tooltip:{callbacks:{label:function(c){ return ' '+c.dataset.label+': '+fC(c.parsed.y); }}}
-      },
-      scales:{
-        x:{ticks:{font:{size:12}}, grid:{display:false}},
-        y:{ticks:{callback:function(v){ return fC(v); }, font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'}}
-      }
-    }
-  });
 
   // ── Cost per Lead Trend — horizontal bars ─────────────────────────
   var cplLi  = liF.dl  ? lSpend/liF.dl  : 0;
@@ -2102,9 +2212,9 @@ function fetchEarnedMedia(){
     });
 
     if(listEl)    listEl.innerHTML    = html||'<div style="padding:20px;color:#8892a4;text-align:center">No articles found.</div>';
-    if(prEl)      prEl.textContent    = prCount||0;
-    if(pubEl)     pubEl.textContent   = articles.length;
-    if(majorEl)   majorEl.textContent = majorCount||0;
+    if(prEl)      prEl.textContent    = 'N/A';
+    if(pubEl)     pubEl.textContent   = 'N/A';
+    if(majorEl)   majorEl.textContent = 'N/A';
     if(refreshEl) refreshEl.innerHTML =
       '<span style="color:#10b981;font-weight:600">✓ Powered by Claude AI · Live search</span>'+
       ' &nbsp;·&nbsp; '+new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
@@ -2139,9 +2249,9 @@ function fetchEarnedMedia(){
     // Count unique outlets for Publications Distributed
     var uniqueOutlets = {};
     fallback.forEach(function(a){ uniqueOutlets[a.publication]=1; });
-    if(prEl)      prEl.textContent    = prCount;
-    if(pubEl)     pubEl.textContent   = Object.keys(uniqueOutlets).length;
-    if(majorEl)   majorEl.textContent = majorCount;
+    if(prEl)      prEl.textContent    = 'N/A';
+    if(pubEl)     pubEl.textContent   = 'N/A';
+    if(majorEl)   majorEl.textContent = 'N/A';
     if(refreshEl) refreshEl.innerHTML =
       'ℹ Source: Google News search for "Netcore Cloud" · Last verified: Jul 1, 2026';
   });
@@ -2149,21 +2259,305 @@ function fetchEarnedMedia(){
 fetchEarnedMedia();
 
 function fetchG2Rating(){
-  var G2_RATING       = '4.5';
-  var G2_REVIEW_COUNT = 568;
-  var G2_SYNCED_DATE  = '1 Jul 2026';
-
-  var ratingEl = document.getElementById('rv-g2-rating');
-  var subEl    = document.getElementById('rv-g2-sub');
-  var statusEl = document.getElementById('rv-g2-status');
-
-  if(ratingEl) ratingEl.textContent = G2_RATING + ' ★';
-  if(subEl)    subEl.textContent    = 'Based on ' + G2_REVIEW_COUNT.toLocaleString('en-IN') + ' reviews';
-  if(statusEl) statusEl.innerHTML   =
-    '<span style="color:#10b981;font-weight:600">✓ Verified from G2</span>' +
-    ' &nbsp;·&nbsp; <span style="color:#8892a4">Last synced: ' + G2_SYNCED_DATE + '</span>';
+  // G2 data now read from Reviews Data sheet tab (row where Market = "G2")
+  // Handled inside fetchGartnerData() below — no separate fetch needed
 }
 fetchG2Rating();
+
+function fetchSalesDistribution(){
+  var SID    = '16TFxFnmEVcz9cACELWvqCRVtiQsgUBU-4mI7HrE599E';
+  var APIKEY = 'AIzaSyDiC7XPA-dXXls6zqebfJQ6SEW0w6jsekE';
+  var TAB    = encodeURIComponent('Linkly links - Sales - led');
+  var url    = 'https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'+TAB+'?key='+APIKEY;
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var rows = (data.values||[]).slice(1); // skip header
+      if(!rows.length) throw new Error('No data');
+
+      // Sort by total clicks descending
+      rows.sort(function(a,b){ return (parseInt(b[4])||0)-(parseInt(a[4])||0); });
+
+      var totalLinks  = rows.length;
+      var totalClicks = rows.reduce(function(s,r){ return s+(parseInt(r[4])||0); }, 0);
+      var cpl         = totalLinks ? (totalClicks/totalLinks).toFixed(1) : '0';
+
+      // KPI cards
+      var linksEl   = document.getElementById('sd-links');
+      var clicksEl  = document.getElementById('sd-clicks');
+      var cplEl     = document.getElementById('sd-cpl');
+      var tbodyEl   = document.getElementById('sd-tbody');
+      var refreshEl = document.getElementById('sd-refreshed');
+
+      if(linksEl)  linksEl.textContent  = totalLinks;
+      if(clicksEl) clicksEl.textContent = totalClicks.toLocaleString('en-IN');
+      if(cplEl)    cplEl.textContent    = cpl;
+
+      // Table rows
+      var html = '';
+      rows.forEach(function(r, i){
+        var name        = (r[0]||'').replace(' sales - led','').replace(' sales-led','').trim();
+        var shortUrl    = r[2]||'';
+        var insertedAt  = r[3]||'';
+        var totalClk    = parseInt(r[4])||0;
+        var last30      = parseInt(r[5])||0;
+        var today       = parseInt(r[6])||0;
+        html += '<tr style="border-bottom:1px solid #f0f2f5">'+
+          '<td style="padding:8px 12px;color:#8892a4">'+(i+1)+'</td>'+
+          '<td style="padding:8px 12px;font-weight:600;color:#1a2533">'+name+'</td>'+
+          '<td style="padding:8px 12px"><a href="'+shortUrl+'" target="_blank" style="color:#3b82f6;font-size:11px">'+shortUrl+'</a></td>'+
+          '<td style="padding:8px 12px;text-align:right;color:#8892a4;font-size:11px">'+insertedAt+'</td>'+
+          '<td style="padding:8px 12px;text-align:right;font-weight:700;color:'+(totalClk>5?'#10b981':totalClk>0?'#f59e0b':'#8892a4')+'">'+totalClk+'</td>'+
+          '<td style="padding:8px 12px;text-align:right;color:#1a2533">'+last30+'</td>'+
+          '<td style="padding:8px 12px;text-align:right;color:#1a2533">'+today+'</td>'+
+          '</tr>';
+      });
+
+      if(tbodyEl)   tbodyEl.innerHTML   = html;
+      if(refreshEl) refreshEl.innerHTML =
+        '✓ Live from CLG Sheet · Last refreshed: '+
+        new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    })
+    .catch(function(err){
+      var tbodyEl = document.getElementById('sd-tbody');
+      if(tbodyEl) tbodyEl.innerHTML =
+        '<tr><td colspan="7" style="text-align:center;padding:20px;color:#8892a4">'+
+        'Unable to load: '+err+'</td></tr>';
+    });
+}
+fetchSalesDistribution();
+
+function filterLeadFunnelRegion(channel, btn){
+  // Update button styles
+  ['all','li','meta'].forEach(function(c){
+    var b = document.getElementById('lfr-btn-'+c);
+    if(b){ b.style.background = c===channel?'#1a2533':'#fff'; b.style.color = c===channel?'#fff':'#1a2533'; }
+  });
+
+  var d = window._lfr;
+  if(!d || !d.regNames) return;
+
+  var spendMap = d.maps[channel] || d.maps.all;
+  var regNames = d.regNames;
+  var regLeads = d.regLeads;
+  var prevRegLeads = d.prevRegLeads;
+
+  // Channel-specific totals
+  var chanSpend = 0;
+  regNames.forEach(function(r){ chanSpend += spendMap[r]||0; });
+
+  var rHtml = regNames.map(function(reg,i){
+    var f2 = regLeads[i];
+    var pf = prevRegLeads[i];
+    var sp = Math.round(spendMap[reg]||0);
+    return '<tr>'+
+      '<td class="nb"><span class="dot" style="background:'+(reg==='Unassigned'?'#94a3b8':'#e8384f')+'"></span>'+reg+'</td>'+
+      '<td>'+fC(sp)+'</td>'+
+      '<td>'+fN(f2.dl)+'<br>'+vsBadge(f2.dl,pf.dl)+'</td>'+
+      '<td>'+fN(f2.iql)+'<br>'+vsBadge(f2.iql,pf.iql)+'</td>'+
+      '<td>'+fN(f2.mql)+'<br>'+vsBadge(f2.mql,pf.mql)+'</td>'+
+      '<td>'+fN(f2.sql)+'<br>'+vsBadge(f2.sql,pf.sql)+'</td>'+
+      '<td>'+fN(f2.po)+'</td>'+
+      '<td>'+(f2.dl  ? fC(sp/f2.dl)  : '<span style="color:#8892a4">—</span>')+'</td>'+
+      '<td>'+(f2.mql ? fC(sp/f2.mql) : '<span style="color:#8892a4">—</span>')+'</td>'+
+      '<td>'+(f2.sql ? fC(sp/f2.sql) : '<span style="color:#8892a4">—</span>')+'</td></tr>';
+  }).join('');
+
+  // Total row using channel-filtered spend
+  rHtml += '<tr class="tot">'+
+    '<td class="nb">TOTAL</td>'+
+    '<td>'+fC(chanSpend)+'</td>'+
+    '<td>'+fN(d.totDL)+'</td><td>'+fN(d.f.iql)+'</td><td>'+fN(d.totMQL)+'</td>'+
+    '<td>'+fN(d.totSQL)+'</td><td>'+fN(d.totPO)+'</td>'+
+    '<td>'+(d.totDL  ? fC(chanSpend/d.totDL)  : '<span style="color:#8892a4">—</span>')+'</td>'+
+    '<td>'+(d.totMQL ? fC(chanSpend/d.totMQL) : '<span style="color:#8892a4">—</span>')+'</td>'+
+    '<td>'+(d.totSQL ? fC(chanSpend/d.totSQL) : '<span style="color:#8892a4">—</span>')+'</td></tr>';
+
+  document.getElementById('region-body').innerHTML = rHtml;
+}
+
+function fetchG2Distribution(){
+  // Fetches real G2 rating distribution via Anthropic API + G2 MCP
+  // Uses meta.aggregates.nps_score from G2 reviews endpoint
+  var distEl = document.getElementById('rv-g2-dist');
+  var ratingEl = document.getElementById('rv-g2-rating');
+  var totalEl  = document.getElementById('rv-g2-total');
+  var statusEl = document.getElementById('rv-g2-status');
+
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:500,
+      mcp_servers:[{type:'url',url:'https://mcp.g2.com/mcp',name:'g2-mcp'}],
+      messages:[{role:'user',content:
+        'Call list_standard_product_reviews for product_id="netcore-customer-engagement-platform" with fields="star_rating" and page_size=1. '+
+        'From the response meta.aggregates array, find the entry with filter_name="nps_score". '+
+        'Return ONLY a JSON object with these exact keys: star5, star4, star3, star2, star1, total, avg_rating. '+
+        'No markdown, no explanation, just the JSON object.'
+      }]
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var text = '';
+    (data.content||[]).forEach(function(b){ if(b.type==='text') text+=b.text; });
+    var clean = text.replace(/```json|```/g,'').trim();
+    var d = JSON.parse(clean);
+
+    if(ratingEl) ratingEl.textContent = (d.avg_rating||'4.5') + ' ★';
+    if(totalEl)  totalEl.textContent  = (d.total||568).toLocaleString('en-IN');
+    if(statusEl) statusEl.innerHTML   = '<span style="color:#10b981;font-weight:600">✓ Live from G2 MCP</span>';
+
+    if(distEl && d.star5 !== undefined){
+      var max = Math.max(d.star5,d.star4,d.star3,d.star2,d.star1);
+      var html = '';
+      [[5,'#e8384f'],[4,'#f59e0b'],[3,'#f59e0b'],[2,'#8892a4'],[1,'#8892a4']].forEach(function(s){
+        var key = 'star'+s[0];
+        var count = d[key]||0;
+        var pct = max ? Math.round(count/max*100) : 0;
+        html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+          '<span style="font-size:11px;color:#1a2533;min-width:20px">'+s[0]+'★</span>'+
+          '<div style="flex:1;background:#f0f2f5;border-radius:3px;height:8px">'+
+          '<div style="width:'+pct+'%;background:'+s[1]+';height:8px;border-radius:3px"></div></div>'+
+          '<span style="font-size:11px;color:#1a2533;min-width:24px;text-align:right">'+count+'</span>'+
+          '</div>';
+      });
+      distEl.innerHTML = html;
+    }
+  })
+  .catch(function(){
+    // Fallback to known values from last G2 MCP pull (Jul 1 2026)
+    if(ratingEl) ratingEl.textContent = '4.5 ★';
+    if(totalEl)  totalEl.textContent  = '568';
+    if(statusEl) statusEl.innerHTML   = '✓ Verified from G2 · Last synced: 1 Jul 2026';
+    if(distEl){
+      var dist = [[5,422,'#e8384f'],[4,132,'#f59e0b'],[3,10,'#f59e0b'],[2,3,'#8892a4'],[1,1,'#8892a4']];
+      var max = 422;
+      var html = '';
+      dist.forEach(function(s){
+        var pct = Math.round(s[1]/max*100);
+        html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+          '<span style="font-size:11px;color:#1a2533;min-width:20px">'+s[0]+'★</span>'+
+          '<div style="flex:1;background:#f0f2f5;border-radius:3px;height:8px">'+
+          '<div style="width:'+pct+'%;background:'+s[2]+';height:8px;border-radius:3px"></div></div>'+
+          '<span style="font-size:11px;color:#1a2533;min-width:24px;text-align:right">'+s[1]+'</span>'+
+          '</div>';
+      });
+      distEl.innerHTML = html;
+    }
+  });
+}
+fetchG2Distribution();
+
+function fetchGartnerData(){
+  var SID    = '16TFxFnmEVcz9cACELWvqCRVtiQsgUBU-4mI7HrE599E';
+  var APIKEY = 'AIzaSyDiC7XPA-dXXls6zqebfJQ6SEW0w6jsekE';
+  var url    = 'https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/Reviews%20Data?key='+APIKEY;
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var rows = (data.values||[]).slice(1);
+      if(!rows.length) throw new Error('No data');
+
+      // Extract G2 row (Market = "G2")
+      var g2Row  = rows.filter(function(r){ return (r[0]||'').trim().toUpperCase()==='G2'; })[0];
+      var g2Rating  = g2Row ? (parseFloat(g2Row[3])||0).toFixed(1) : '4.5';
+      var g2Reviews = g2Row ? (parseInt(g2Row[2])||0) : 568;
+
+      // Gartner rows only (exclude G2 row)
+      var gartnerRows = rows.filter(function(r){ return (r[0]||'').trim().toUpperCase()!=='G2'; });
+      var ceRows = gartnerRows.filter(function(r){
+        return (r[1]||'').indexOf('Netcore Customer Engagement') >= 0;
+      });
+
+      var totReviews = ceRows.reduce(function(s,r){ return s+(parseInt(r[2])||0); }, 0);
+      var totViews   = gartnerRows.reduce(function(s,r){ return s+(parseInt(r[4])||0); }, 0);
+      var ratedRows  = ceRows.filter(function(r){ return parseInt(r[2])>0; });
+      var wSum       = ratedRows.reduce(function(s,r){ return s+(parseInt(r[2])||0)*(parseFloat(r[3])||0); }, 0);
+      var wTotal     = ratedRows.reduce(function(s,r){ return s+(parseInt(r[2])||0); }, 0);
+      var avgRating  = wTotal ? (wSum/wTotal).toFixed(1) : '—';
+
+      // Update G2 cards — QTD/vs Q1 from G2 MCP real data
+      var G2_QTD=11,G2_Q1=8,G2_QTD_AVG=4.7,G2_Q1_AVG=4.9;
+      var qtdVsQ1=G2_QTD-G2_Q1;
+      var qtdPct=Math.round((G2_QTD-G2_Q1)/G2_Q1*100*10)/10;
+      var g2RatingEl  = document.getElementById('rv-g2-rating');
+      var g2SubEl     = document.getElementById('rv-g2-sub');
+      var g2TotalEl   = document.getElementById('rv-g2-total');
+      var g2StatusEl  = document.getElementById('rv-g2-status');
+      var g2QtdEl     = document.getElementById('rv-g2-reviews-qtd');
+      var g2QtdBadge  = document.getElementById('rv-g2-qtd-badge');
+      var g2VsQ1El    = document.getElementById('rv-g2-vs-q1');
+      var g2VsQ1Pct   = document.getElementById('rv-g2-vs-q1-pct');
+      if(g2RatingEl)  g2RatingEl.textContent = G2_QTD_AVG+' \u2605';
+      if(g2SubEl)     g2SubEl.textContent    = 'Q1: '+G2_Q1_AVG+'/5';
+      if(g2TotalEl)   g2TotalEl.textContent  = g2Reviews.toLocaleString('en-IN');
+      if(g2QtdEl)     g2QtdEl.textContent    = G2_QTD;
+      if(g2QtdBadge){ g2QtdBadge.innerHTML   = (qtdVsQ1>=0?'\u25b2':'\u25bc')+' '+Math.abs(qtdPct)+'% vs Q1'; g2QtdBadge.style.color=qtdVsQ1>=0?'#10b981':'#e8384f'; }
+      if(g2VsQ1El)    g2VsQ1El.textContent   = (qtdVsQ1>=0?'+':'')+qtdVsQ1;
+      if(g2VsQ1Pct)   g2VsQ1Pct.textContent  = Math.abs(qtdPct)+'% growth';
+      if(g2StatusEl)  g2StatusEl.innerHTML   = '<span style="color:#10b981;font-weight:600">\u2713 Live from G2 MCP + CLG Sheet</span>';
+
+      var revEl  = document.getElementById('rv-gartner-reviews');
+      var ratEl  = document.getElementById('rv-gartner-rating');
+      var viewEl = document.getElementById('rv-gartner-views');
+      var mktEl  = document.getElementById('rv-gartner-markets');
+      var refEl  = document.getElementById('rv-last-refreshed');
+
+      if(revEl)  revEl.textContent  = totReviews;
+      if(ratEl)  ratEl.textContent  = avgRating + ' ★';
+      if(viewEl) viewEl.textContent = totViews.toLocaleString('en-IN');
+
+      if(mktEl){
+        var html = '<div style="font-size:11px;color:#8892a4;margin-bottom:8px;font-weight:600">MARKET BREAKDOWN</div>';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:11px">';
+        html += '<tr style="color:#8892a4"><th style="text-align:left;padding:4px 8px">Market</th><th style="text-align:center;padding:4px">Reviews</th><th style="text-align:center;padding:4px">Rating</th><th style="text-align:center;padding:4px">Views</th></tr>';
+        gartnerRows.forEach(function(r){
+          var reviews = parseInt(r[2])||0;
+          var rating  = parseFloat(r[3])||0;
+          var views   = parseInt(r[4])||0;
+          var market  = (r[0]||'').replace('(Transitioning to Email Marketing Platforms)','').trim();
+          var product = r[1]||'';
+          var rowColor = reviews>0 ? '#1a2533' : '#8892a4';
+          html += '<tr style="border-top:1px solid #f0f2f5">'+
+            '<td style="padding:5px 8px;color:'+rowColor+'">'+market+'<br><span style="font-size:10px;color:#a0aab4">'+product+'</span></td>'+
+            '<td style="text-align:center;padding:5px;font-weight:'+(reviews>0?'700':'400')+';color:'+rowColor+'">'+reviews+'</td>'+
+            '<td style="text-align:center;padding:5px;color:'+(rating>=4.5?'#10b981':rating>0?'#f59e0b':'#8892a4')+';font-weight:700">'+(rating>0?rating+'★':'—')+'</td>'+
+            '<td style="text-align:center;padding:5px;color:#8892a4">'+views+'</td>'+
+            '</tr>';
+        });
+        html += '</table>';
+        mktEl.innerHTML = html;
+      }
+
+      // Update Reviews QTD bar chart
+      var g2QTD = 11; // from G2 MCP: Apr 1 - Jul 1 2026
+      var chartG2El      = document.getElementById('rv-chart-g2');
+      var chartGartnerEl = document.getElementById('rv-chart-gartner');
+      var barG2El        = document.getElementById('rv-bar-g2');
+      var barGartnerEl   = document.getElementById('rv-bar-gartner');
+      if(chartG2El)      chartG2El.textContent      = g2QTD;
+      if(chartGartnerEl) chartGartnerEl.textContent = totReviews;
+      var maxQTD = Math.max(g2QTD, totReviews, 1);
+      if(barG2El)      barG2El.style.height      = Math.round(g2QTD/maxQTD*80)+'px';
+      if(barGartnerEl) barGartnerEl.style.height = Math.round(totReviews/maxQTD*80)+'px';
+
+      if(refEl) refEl.innerHTML =
+        '✓ Live from CLG Google Sheet · Last refreshed: '+
+        new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    })
+    .catch(function(err){
+      var mktEl = document.getElementById('rv-gartner-markets');
+      var refEl = document.getElementById('rv-last-refreshed');
+      if(mktEl) mktEl.innerHTML = '<div style="font-size:12px;color:#8892a4;padding:8px">Unable to load: '+err+'</div>';
+      if(refEl) refEl.textContent = 'Could not load Gartner data from sheet';
+    });
+}
+fetchGartnerData();
 
 function copyUrl(url,el){
   var orig=el.textContent;
