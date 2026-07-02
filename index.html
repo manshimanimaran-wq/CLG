@@ -1946,28 +1946,30 @@ function renderWhatsApp(values, fromDate, toDate){
     });
   }
 
-  // Group by campaign name
+// Group by campaign name
   var campMap={};
   rows.forEach(function(r){
     var k=String(r[1]||'').trim(); if(!k) return;
-    if(!campMap[k]) campMap[k]={sent:0,read:0,click:0};
-    campMap[k].sent  +=parseFloat(r[6])||0;
-    campMap[k].read  +=parseFloat(r[12])||0;
-    campMap[k].click +=parseFloat(r[14])||0;
+    if(!campMap[k]) campMap[k]={sent:0,delivered:0,read:0,click:0};
+    campMap[k].sent      +=parseFloat(r[6])||0;
+    campMap[k].delivered +=parseFloat(r[8])||0;   // col I — needed as Read Rate denominator
+    campMap[k].read      +=parseFloat(r[12])||0;
+    campMap[k].click     +=parseFloat(r[14])||0;
   });
 
   var camps=Object.values(campMap);
   var totSent=camps.reduce(function(s,c){return s+c.sent;},0);
+  var totDelivered=camps.reduce(function(s,c){return s+c.delivered;},0);
   var totRead=camps.reduce(function(s,c){return s+c.read;},0);
   var totClick=camps.reduce(function(s,c){return s+c.click;},0);
 
   set('wa-camps',Object.keys(campMap).length);
-  set('wa-read', fP(totSent?totRead/totSent*100:0));
+  set('wa-read', fP(totDelivered?totRead/totDelivered*100:0));   // Read ÷ Delivered, not Sent
   set('wa-ctr',  fP(totSent?totClick/totSent*100:0,1));
 
   var top5=Object.entries(campMap).sort(function(a,b){return b[1].click-a[1].click;}).slice(0,5);
   document.getElementById('wa-tbody').innerHTML=top5.map(function(e,i){
-    var name=e[0],v=e[1],rr=v.sent?v.read/v.sent*100:0;
+    var name=e[0],v=e[1],rr=v.delivered?v.read/v.delivered*100:0;   // Read ÷ Delivered, not Sent
     return '<tr style="border-bottom:1px solid #f0f2f5">'+
       '<td class="story-num" style="padding:10px 12px">'+(i+1)+'</td>'+
       '<td style="padding:10px 12px;font-weight:600;color:#1a2533">'+esc(name)+'</td>'+
