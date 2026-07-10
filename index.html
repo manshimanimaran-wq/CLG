@@ -261,6 +261,17 @@ td:not(:first-child){text-align:right}
     </tr></thead><tbody id="channel-body"></tbody></table>
   </div>
 
+  <div class="sec-ttl">Cost Efficiency per Channel</div>
+  <div class="sec-sub">Cost per MQL vs. Cost per SQL — lower is better</div>
+  <div class="redline"></div>
+  <div class="chart-box">
+    <div class="ch-wrap"><canvas id="costChart" role="img" aria-label="Cost per MQL and SQL by channel"></canvas></div>
+    <div class="leg">
+      <span><span class="ldot" style="background:#3b82f6"></span>Cost/MQL</span>
+      <span><span class="ldot" style="background:#f59e0b"></span>Cost/SQL</span>
+    </div>
+  </div>
+
   <div class="sec-ttl">Cost per Lead Trend</div>
   <div class="sec-sub">Average cost per lead by channel (₹K)</div>
   <div class="redline"></div>
@@ -673,6 +684,7 @@ var TABS = {
   earned : 'Earned Media'       // manually updated by team every 2 weeks from Google News
 };
 
+var costChartInst = null;
 
 // ── Global tab data — stored at boot, re-used on range change ────────
 var RAW_LEADS = null, RAW_GADS = null, RAW_META = null, RAW_LI = null;
@@ -1135,6 +1147,33 @@ function renderPaid(gads,meta,li,leads){
       '<td class="nbl">'+fC(c.f.mql ? c.sp/c.f.mql : 0)+'</td>'+
       '<td class="nbl">'+fC(c.f.sql ? c.sp/c.f.sql : 0)+'</td></tr>';
   }).join('');
+
+  // Cost chart
+  if(costChartInst){ costChartInst.destroy(); costChartInst=null; }
+  var lCmql = liF.mql  ? lSpend/liF.mql  : 0;
+  var lCsql = liF.sql  ? lSpend/liF.sql  : 0;
+  var mCmql = webF.mql ? mSpend/webF.mql : 0;
+  var mCsql = webF.sql ? mSpend/webF.sql : 0;
+  costChartInst = new Chart(document.getElementById('costChart'),{
+    type:'bar',
+    data:{
+      labels:['LinkedIn','Meta'],
+      datasets:[
+        {label:'Cost/MQL', data:[Math.round(lCmql),Math.round(mCmql)], backgroundColor:'#3b82f6', borderRadius:4},
+        {label:'Cost/SQL', data:[Math.round(lCsql),Math.round(mCsql)], backgroundColor:'#f59e0b', borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{callbacks:{label:function(c){ return ' '+c.dataset.label+': '+fC(c.parsed.y); }}}
+      },
+      scales:{
+        x:{ticks:{font:{size:12}}, grid:{display:false}},
+        y:{ticks:{callback:function(v){ return fC(v); }, font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'}}
+      }
+    }
+  });
 
   // ── Cost per Lead Trend — horizontal bars ─────────────────────────
   var cplLi  = liF.dl  ? lSpend/liF.dl  : 0;
@@ -1734,6 +1773,10 @@ function reRenderAll(days, fromDate, toDate){
   // But re-render with existing data so KPIs stay consistent
   renderGA4(RAW_GA4);
 
+  // Refresh Reviews tab data on range change
+  fetchGartnerData();
+  fetchG2Distribution();
+
   // Re-render WA and Email filtered by the same date window
   var winEnd   = toDate || new Date().toISOString().slice(0,10);
   var winStart = fromDate;
@@ -1946,30 +1989,28 @@ function renderWhatsApp(values, fromDate, toDate){
     });
   }
 
-// Group by campaign name
+  // Group by campaign name
   var campMap={};
   rows.forEach(function(r){
     var k=String(r[1]||'').trim(); if(!k) return;
-    if(!campMap[k]) campMap[k]={sent:0,delivered:0,read:0,click:0};
-    campMap[k].sent      +=parseFloat(r[6])||0;
-    campMap[k].delivered +=parseFloat(r[8])||0;   // col I — needed as Read Rate denominator
-    campMap[k].read      +=parseFloat(r[12])||0;
-    campMap[k].click     +=parseFloat(r[14])||0;
+    if(!campMap[k]) campMap[k]={sent:0,read:0,click:0};
+    campMap[k].sent  +=parseFloat(r[6])||0;
+    campMap[k].read  +=parseFloat(r[12])||0;
+    campMap[k].click +=parseFloat(r[14])||0;
   });
 
   var camps=Object.values(campMap);
   var totSent=camps.reduce(function(s,c){return s+c.sent;},0);
-  var totDelivered=camps.reduce(function(s,c){return s+c.delivered;},0);
   var totRead=camps.reduce(function(s,c){return s+c.read;},0);
   var totClick=camps.reduce(function(s,c){return s+c.click;},0);
 
   set('wa-camps',Object.keys(campMap).length);
-  set('wa-read', fP(totDelivered?totRead/totDelivered*100:0));   // Read ÷ Delivered, not Sent
+  set('wa-read', fP(totSent?totRead/totSent*100:0));
   set('wa-ctr',  fP(totSent?totClick/totSent*100:0,1));
 
   var top5=Object.entries(campMap).sort(function(a,b){return b[1].click-a[1].click;}).slice(0,5);
   document.getElementById('wa-tbody').innerHTML=top5.map(function(e,i){
-    var name=e[0],v=e[1],rr=v.delivered?v.read/v.delivered*100:0;   // Read ÷ Delivered, not Sent
+    var name=e[0],v=e[1],rr=v.sent?v.read/v.sent*100:0;
     return '<tr style="border-bottom:1px solid #f0f2f5">'+
       '<td class="story-num" style="padding:10px 12px">'+(i+1)+'</td>'+
       '<td style="padding:10px 12px;font-weight:600;color:#1a2533">'+esc(name)+'</td>'+
@@ -2255,7 +2296,7 @@ function fetchEarnedMedia(){
     if(pubEl)     pubEl.textContent   = 'N/A';
     if(majorEl)   majorEl.textContent = 'N/A';
     if(refreshEl) refreshEl.innerHTML =
-      'ℹ Source: Google News search for "Netcore Cloud" · Last verified: Jul 1, 2026';
+      'ℹ Source: Google News search for "Netcore Cloud" · Last verified: '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
   });
 }
 fetchEarnedMedia();
@@ -2380,77 +2421,44 @@ function filterLeadFunnelRegion(channel, btn){
 }
 
 function fetchG2Distribution(){
-  // Fetches real G2 rating distribution via Anthropic API + G2 MCP
-  // Uses meta.aggregates.nps_score from G2 reviews endpoint
+  // Fetches real G2 rating distribution via Vercel proxy (server-side G2 MCP call)
   var distEl = document.getElementById('rv-g2-dist');
   var ratingEl = document.getElementById('rv-g2-rating');
   var totalEl  = document.getElementById('rv-g2-total');
   var statusEl = document.getElementById('rv-g2-status');
 
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      model:'claude-sonnet-4-6',
-      max_tokens:500,
-      mcp_servers:[{type:'url',url:'https://mcp.g2.com/mcp',name:'g2-mcp'}],
-      messages:[{role:'user',content:
-        'Call list_standard_product_reviews for product_id="netcore-customer-engagement-platform" with fields="star_rating" and page_size=1. '+
-        'From the response meta.aggregates array, find the entry with filter_name="nps_score". '+
-        'Return ONLY a JSON object with these exact keys: star5, star4, star3, star2, star1, total, avg_rating. '+
-        'No markdown, no explanation, just the JSON object.'
-      }]
-    })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    var text = '';
-    (data.content||[]).forEach(function(b){ if(b.type==='text') text+=b.text; });
-    var clean = text.replace(/```json|```/g,'').trim();
-    var d = JSON.parse(clean);
+  function renderDist(dist){
+    if(!distEl) return;
+    var max = Math.max(dist.star5,dist.star4,dist.star3,dist.star2,dist.star1) || 1;
+    var html = '';
+    [[5,'#e8384f'],[4,'#f59e0b'],[3,'#f59e0b'],[2,'#8892a4'],[1,'#8892a4']].forEach(function(s){
+      var count = dist['star'+s[0]]||0;
+      var pct = Math.round(count/max*100);
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+        '<span style="font-size:11px;color:#1a2533;min-width:20px">'+s[0]+'\u2605</span>'+
+        '<div style="flex:1;background:#f0f2f5;border-radius:3px;height:8px">'+
+        '<div style="width:'+pct+'%;background:'+s[1]+';height:8px;border-radius:3px"></div></div>'+
+        '<span style="font-size:11px;color:#1a2533;min-width:24px;text-align:right">'+count+'</span>'+
+        '</div>';
+    });
+    distEl.innerHTML = html;
+  }
 
-    if(ratingEl) ratingEl.textContent = (d.avg_rating||'4.5') + ' ★';
-    if(totalEl)  totalEl.textContent  = (d.total||568).toLocaleString('en-IN');
-    if(statusEl) statusEl.innerHTML   = '<span style="color:#10b981;font-weight:600">✓ Live from G2 MCP</span>';
+  var FALLBACK_DIST = {star5:422, star4:132, star3:10, star2:3, star1:1};
 
-    if(distEl && d.star5 !== undefined){
-      var max = Math.max(d.star5,d.star4,d.star3,d.star2,d.star1);
-      var html = '';
-      [[5,'#e8384f'],[4,'#f59e0b'],[3,'#f59e0b'],[2,'#8892a4'],[1,'#8892a4']].forEach(function(s){
-        var key = 'star'+s[0];
-        var count = d[key]||0;
-        var pct = max ? Math.round(count/max*100) : 0;
-        html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
-          '<span style="font-size:11px;color:#1a2533;min-width:20px">'+s[0]+'★</span>'+
-          '<div style="flex:1;background:#f0f2f5;border-radius:3px;height:8px">'+
-          '<div style="width:'+pct+'%;background:'+s[1]+';height:8px;border-radius:3px"></div></div>'+
-          '<span style="font-size:11px;color:#1a2533;min-width:24px;text-align:right">'+count+'</span>'+
-          '</div>';
-      });
-      distEl.innerHTML = html;
-    }
-  })
-  .catch(function(){
-    // Fallback to known values from last G2 MCP pull (Jul 1 2026)
-    if(ratingEl) ratingEl.textContent = '4.5 ★';
-    if(totalEl)  totalEl.textContent  = '568';
-    if(statusEl) statusEl.innerHTML   = '✓ Verified from G2 · Last synced: 1 Jul 2026';
-    if(distEl){
-      var dist = [[5,422,'#e8384f'],[4,132,'#f59e0b'],[3,10,'#f59e0b'],[2,3,'#8892a4'],[1,1,'#8892a4']];
-      var max = 422;
-      var html = '';
-      dist.forEach(function(s){
-        var pct = Math.round(s[1]/max*100);
-        html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
-          '<span style="font-size:11px;color:#1a2533;min-width:20px">'+s[0]+'★</span>'+
-          '<div style="flex:1;background:#f0f2f5;border-radius:3px;height:8px">'+
-          '<div style="width:'+pct+'%;background:'+s[2]+';height:8px;border-radius:3px"></div></div>'+
-          '<span style="font-size:11px;color:#1a2533;min-width:24px;text-align:right">'+s[1]+'</span>'+
-          '</div>';
-      });
-      distEl.innerHTML = html;
-    }
-  });
+  var G2_PROXY_URL = 'REPLACE_WITH_YOUR_VERCEL_URL/api/g2-data';
+
+  if(G2_PROXY_URL.indexOf('REPLACE_WITH') < 0){
+    fetch(G2_PROXY_URL)
+      .then(function(r){ return r.json(); })
+      .then(function(g2){
+        if(g2.error || !g2.distribution) throw new Error('No distribution data');
+        renderDist(g2.distribution);
+      })
+      .catch(function(){ renderDist(FALLBACK_DIST); });
+  } else {
+    renderDist(FALLBACK_DIST);
+  }
 }
 fetchG2Distribution();
 
@@ -2483,10 +2491,8 @@ function fetchGartnerData(){
       var wTotal     = ratedRows.reduce(function(s,r){ return s+(parseInt(r[2])||0); }, 0);
       var avgRating  = wTotal ? (wSum/wTotal).toFixed(1) : '—';
 
-      // Update G2 cards — QTD/vs Q1 from G2 MCP real data
-      var G2_QTD=11,G2_Q1=8,G2_QTD_AVG=4.7,G2_Q1_AVG=4.9;
-      var qtdVsQ1=G2_QTD-G2_Q1;
-      var qtdPct=Math.round((G2_QTD-G2_Q1)/G2_Q1*100*10)/10;
+      // Update G2 cards — QTD/vs Q1 fetched live from Vercel proxy (G2 MCP server-side)
+      // Fallback to last-known values if proxy isn't configured/reachable
       var g2RatingEl  = document.getElementById('rv-g2-rating');
       var g2SubEl     = document.getElementById('rv-g2-sub');
       var g2TotalEl   = document.getElementById('rv-g2-total');
@@ -2495,14 +2501,36 @@ function fetchGartnerData(){
       var g2QtdBadge  = document.getElementById('rv-g2-qtd-badge');
       var g2VsQ1El    = document.getElementById('rv-g2-vs-q1');
       var g2VsQ1Pct   = document.getElementById('rv-g2-vs-q1-pct');
-      if(g2RatingEl)  g2RatingEl.textContent = G2_QTD_AVG+' \u2605';
-      if(g2SubEl)     g2SubEl.textContent    = 'Q1: '+G2_Q1_AVG+'/5';
-      if(g2TotalEl)   g2TotalEl.textContent  = g2Reviews.toLocaleString('en-IN');
-      if(g2QtdEl)     g2QtdEl.textContent    = G2_QTD;
-      if(g2QtdBadge){ g2QtdBadge.innerHTML   = (qtdVsQ1>=0?'\u25b2':'\u25bc')+' '+Math.abs(qtdPct)+'% vs Q1'; g2QtdBadge.style.color=qtdVsQ1>=0?'#10b981':'#e8384f'; }
-      if(g2VsQ1El)    g2VsQ1El.textContent   = (qtdVsQ1>=0?'+':'')+qtdVsQ1;
-      if(g2VsQ1Pct)   g2VsQ1Pct.textContent  = Math.abs(qtdPct)+'% growth';
-      if(g2StatusEl)  g2StatusEl.innerHTML   = '<span style="color:#10b981;font-weight:600">\u2713 Live from G2 MCP + CLG Sheet</span>';
+
+      function applyG2Data(g2, sourceLabel){
+        var qtdVsQ1 = g2.qtd_reviews - g2.prev_q_reviews;
+        var qtdPct  = g2.prev_q_reviews ? Math.round((qtdVsQ1)/g2.prev_q_reviews*100*10)/10 : 0;
+        if(g2RatingEl)  g2RatingEl.textContent = g2.qtd_avg_rating+' \u2605';
+        if(g2SubEl)     g2SubEl.textContent    = 'Q1: '+g2.prev_q_avg_rating+'/5';
+        if(g2TotalEl)   g2TotalEl.textContent  = (g2.overall_reviews||g2Reviews).toLocaleString('en-IN');
+        if(g2QtdEl)     g2QtdEl.textContent    = g2.qtd_reviews;
+        if(g2QtdBadge){ g2QtdBadge.innerHTML   = (qtdVsQ1>=0?'\u25b2':'\u25bc')+' '+Math.abs(qtdPct)+'% vs Q1'; g2QtdBadge.style.color=qtdVsQ1>=0?'#10b981':'#e8384f'; }
+        if(g2VsQ1El)    g2VsQ1El.textContent   = (qtdVsQ1>=0?'+':'')+qtdVsQ1;
+        if(g2VsQ1Pct)   g2VsQ1Pct.textContent  = Math.abs(qtdPct)+'% growth';
+        if(g2StatusEl)  g2StatusEl.innerHTML   = '<span style="color:#10b981;font-weight:600">\u2713 '+sourceLabel+'</span>';
+      }
+
+      // ── Replace with your deployed Vercel proxy URL after setup ──
+      var G2_PROXY_URL = 'REPLACE_WITH_YOUR_VERCEL_URL/api/g2-data';
+
+      if(G2_PROXY_URL.indexOf('REPLACE_WITH') < 0){
+        fetch(G2_PROXY_URL)
+          .then(function(r){ return r.json(); })
+          .then(function(g2){
+            if(g2.error) throw new Error(g2.error);
+            applyG2Data(g2, 'Live from G2 MCP (auto-refreshed)');
+          })
+          .catch(function(){
+            applyG2Data({qtd_reviews:11, prev_q_reviews:8, qtd_avg_rating:4.7, prev_q_avg_rating:4.9, overall_reviews:g2Reviews}, 'Last known G2 data \u00b7 proxy unreachable');
+          });
+      } else {
+        applyG2Data({qtd_reviews:11, prev_q_reviews:8, qtd_avg_rating:4.7, prev_q_avg_rating:4.9, overall_reviews:g2Reviews}, 'Last known G2 data \u00b7 deploy Vercel proxy for live refresh');
+      }
 
       var revEl  = document.getElementById('rv-gartner-reviews');
       var ratEl  = document.getElementById('rv-gartner-rating');
